@@ -1,0 +1,15 @@
+.git
+.github
+data
+backups
+backup_gestionale_ore_*
+*.db
+*.sqlite
+*.log
+.env
+.env.*
+node_modules
+coverage
+tests
+docs
+.DS_Store

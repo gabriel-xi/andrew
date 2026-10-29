@@ -1,0 +1,17 @@
+{
+  "name": "andrew",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Gestionale corsi e banca ore, Node.js + SQLite, senza dipendenze runtime",
+  "engines": {
+    "node": ">=22.16.0"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node --watch app.js",
+    "test": "node --test",
+    "check": "node --check app.js && for file in src/*.js Routes/*.js Routes/middleware/*.js public/JS/*.js; do node --check \"$file\"; done",
+    "migrate": "node src/migrate.js"
+  }
+}

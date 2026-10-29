@@ -1,0 +1,21 @@
+# Runtime database, backups, logs, uploads and secrets
+data/
+*.db
+*.sqlite
+*.sqlite3
+*.db-wal
+*.db-shm
+*.sqlite-wal
+*.sqlite-shm
+*.log
+.env
+.env.*
+!.env.example
+backups/
+uploads/
+node_modules/
+coverage/
+.DS_Store
+__pycache__/
+.pytest_cache/
+*.pyc
