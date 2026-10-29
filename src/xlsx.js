@@ -197,7 +197,7 @@ export function interpretWorkRows(rows) {
  if(index<0)throw Error('Il file deve contenere colonne Data e Ore.');
  const headings=rows[index].map(normalize),find=names=>headings.findIndex(h=>names.includes(h));
  const dateIndex=find(['data','date','giorno']),hoursIndex=find(['ore','hours','quantita']),
-   kindIndex=find(['tipo','type','movimento']),noteIndex=find(['note','causale','descrizione']);
+   kindIndex=find(['tipo','type','movimento']),noteIndex=find(['nota','note','causale','descrizione']);
  const records=[],skipped=[];
  for(let j=index+1;j<rows.length;j++){
   const r=rows[j],date=excelDate(r[dateIndex]),raw=String(r[hoursIndex]??'').replace(',','.').trim(),hours=Number(raw);

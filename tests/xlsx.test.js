@@ -10,7 +10,7 @@ test('XLSX multi-foglio in memoria senza dipendenze',()=>{
    ['2026-10-30','utilizzata',2,'Permesso'],
    ['2026-11-01','maturata',1,'=1+1']]}
  ]);
- assert.match(book.subarray(0,2).toString(),'PK');
+ assert.equal(book.subarray(0,2).toString(),'PK');
  assert.equal(parseXlsx(book,1)[1][1],124);
  assert.deepEqual(parseXlsx(book,2)[1],['2026-10-29','maturata',4.5,'Tutoraggio & aula <B>']);
  const interpreted=interpretWorkRows(parseXlsx(book,2));
