@@ -120,3 +120,18 @@ CREATE TABLE IF NOT EXISTS legacy_unmapped_records (
   record TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS timecards(
+ id INTEGER PRIMARY KEY AUTOINCREMENT,
+ user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ course_id INTEGER REFERENCES courses(id) ON DELETE SET NULL,
+ work_date TEXT NOT NULL,
+ scheduled_start TEXT NOT NULL,scheduled_end TEXT NOT NULL,
+ actual_start TEXT NOT NULL,actual_end TEXT NOT NULL,
+ lunch_start TEXT NOT NULL DEFAULT '',lunch_end TEXT NOT NULL DEFAULT '',
+ scheduled_minutes INTEGER NOT NULL,actual_minutes INTEGER NOT NULL,delta_minutes INTEGER NOT NULL,
+ activity TEXT NOT NULL DEFAULT 'Lavoro ordinario',note TEXT NOT NULL DEFAULT '',
+ linked_entry_id INTEGER REFERENCES work_entries(id) ON DELETE SET NULL,
+ created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_timecards_user_date ON timecards(user_id,work_date);

@@ -17,6 +17,8 @@ export default function register(router) {
     send(201,{status:'ok',id:Number(result.lastInsertRowid)});
   });
   router.add('DELETE','/api/me/entries/:id',({db,user,params,send}) => {
+    const linked=db.prepare('SELECT id FROM timecards WHERE linked_entry_id=? AND user_id=?').get(Number(params.id),user.id);
+    if(linked)throw new HttpError(409,'Questa registrazione deriva da una presenza. Modificala nella sezione Presenze.');
     const result=db.prepare('DELETE FROM work_entries WHERE id=? AND user_id=?').run(Number(params.id),user.id);
     if (!result.changes) throw new HttpError(404,'Movimento inesistente');
     send(200,{status:'ok'});
