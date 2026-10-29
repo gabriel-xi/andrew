@@ -15,3 +15,8 @@ Costo: lettura di N movimenti O(N) tempo e memoria per l'export Excel.
 L'importazione richiede O(N) tempo di parsing ed inserimento, con buffer massimo
 per gli allegati e massimo XML per mitigare archivi decompressi eccessivi.
 Per carichi molto grandi introdurre streaming e batch processing.
+
+## Moduli aggiuntivi
+- `src/timetracking.js` valida turni diurni e notturni, pause e differenze fra orari previsti/effettivi: tutto in minuti interi; i movimenti di credito/debito sono aggiornati nella stessa transazione.
+- `src/courseImport.js` interpreta calendari Excel/CSV, con controlli sulle collisioni interne e sulle lezioni già presenti; `Routes/calendarImport.js` espone anteprima e conferma.
+- `src/xlsx.js` gestisce fogli XLSX tabellari con limiti di memoria/dimensione; non interpreta macro e formule.

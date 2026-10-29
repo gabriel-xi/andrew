@@ -22,7 +22,9 @@ Per l'utilizzo remoto è obbligatorio predisporre HTTPS e controlli di accesso a
 - Login/registrazione con password scrypt, token HttpOnly e ruoli admin/tutor.
 - Dashboard con statistiche, calendario, corsi, tutor e report.
 - CRUD per corsi, sessioni, contratti, movimenti di banca ore e documenti.
-- Controllo sovrapposizione di docenti e tutor.
+- Controllo sovrapposizione di docenti e tutor, calendari ufficiali per corso, fasi aula/stage, moduli e test finali.
+- Import dei calendari XLSX/CSV con anteprima, controllo collisioni e verifica duplicati; modello scaricabile dalla pagina Calendario.
+- Presenze e turni anche notturni con orario previsto/effettivo, pause, calcolo delta e riconciliazione automatica con il saldo ore.
 - Registro crediti/debiti con saldo iniziale e report settimanali/mensili.
 - Export Excel (.xlsx) multi-foglio e CSV; import Excel e CSV con anteprima e blocco duplicati.
 - Snapshot SQLite riservato agli amministratori.
