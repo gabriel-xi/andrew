@@ -4,6 +4,7 @@ const now=new Date();
 $('month').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
 for(const id of ['closeDialog','cancelDialog'])$(id).addEventListener('click',()=>closeDialog('editorDialog'));
 const courses=(await api('/api/courses')).courses;
+for(const c of courses){const option=node('option','',c.title);option.value=c.id;$('import_course_id').append(option);}
 for(const c of courses){
  for(const id of ['course_id','calendar_course_id']){
   const option=node('option','',c.title);option.value=c.id;$(id).append(option);
@@ -41,6 +42,13 @@ function renderCalendars(){
  const none=node('option','','Nessuno');none.value='';select.append(none);
  for(const c of calendars){const opt=node('option','',c.title+' — '+c.course_title);opt.value=c.id;opt.dataset.course=c.course_id;select.append(opt);}
  select.value=selected;
+ const importSelect=$('import_calendar_id'),prior=importSelect.value;importSelect.replaceChildren();
+ const first=node('option','','Crea nuovo calendario');first.value='';importSelect.append(first);
+ const selectedCourse=Number($('import_course_id').value);
+ for(const c of calendars.filter(c=>c.course_id===selectedCourse)){
+  const opt=node('option','',c.title);opt.value=c.id;importSelect.append(opt);
+ }
+ if([...importSelect.options].some(o=>o.value===prior))importSelect.value=prior;
 }
 function openCalendarEditor(item=null){
  editingCalendarId=item?.id||null;const form=$('calendarForm');form.reset();
@@ -102,3 +110,44 @@ bindForm('calendarForm',async raw=>{
 $('month').addEventListener('change',load);
 $('todayBtn').addEventListener('click',()=>{$('month').value=new Date().toISOString().slice(0,7);load();});
 await load();
+
+let previewFile=null;
+const importFile=$('calendarImportFile'),importConfirm=$('confirmCalendarImport'),importInfo=$('calendarImportInfo');
+$('import_course_id').addEventListener('change',()=>{renderCalendars();previewFile=null;importConfirm.disabled=true;});
+$('import_calendar_id').addEventListener('change',()=>{previewFile=null;importConfirm.disabled=true;});
+importFile.addEventListener('change',()=>{previewFile=null;importConfirm.disabled=true;importInfo.textContent='';});
+async function importCalendar(file,confirm=false){
+ const courseId=Number($('import_course_id').value);
+ if(!courseId)throw Error('Seleziona un corso');
+ const query=new URLSearchParams({course_id:String(courseId),confirm:String(confirm)});
+ if($('import_calendar_id').value)query.set('calendar_id',$('import_calendar_id').value);
+ const res=await fetch('/api/course-calendars/parse-file?'+query,{method:'POST',credentials:'same-origin',
+  headers:{'Content-Type':file.name.toLowerCase().endsWith('.csv')?'text/csv':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'},body:file});
+ const data=await res.json();
+ if(!res.ok)throw Error(data.message||'Impossibile analizzare il file');
+ return data;
+}
+$('calendarImportForm').addEventListener('submit',async event=>{
+ event.preventDefault();const file=importFile.files[0];if(!file)return;
+ importConfirm.disabled=true;previewFile=null;
+ if(file.size>8*1024*1024){showMessage('Il file supera 8 MiB');return;}
+ try{
+  const result=await importCalendar(file);
+  importInfo.textContent='Lezioni: '+result.total+' · Righe scartate: '+result.skipped.length+
+   ' · Sovrapposizioni: '+result.conflicts.length+(result.already_imported?' · GIÀ IMPORTATO':'');
+  previewFile=file;
+  importConfirm.disabled=!result.total||result.skipped.length>0||result.conflicts.length>0||result.already_imported;
+  showMessage('Anteprima completata. Verifica errori e sovrapposizioni prima di importare.','success');
+ }catch(error){showMessage(error.message);}
+});
+importConfirm.addEventListener('click',async()=>{
+ if(!previewFile||previewFile!==importFile.files[0])return;
+ if(!confirm('Confermi la registrazione delle lezioni nel calendario?'))return;
+ importConfirm.disabled=true;
+ try{
+  const result=await importCalendar(previewFile,true);
+  importInfo.textContent='Lezioni importate: '+result.imported+' · Calendario '+result.calendar_id;
+  importFile.value='';previewFile=null;await load();
+  showMessage('Importazione calendario completata','success');
+ }catch(error){showMessage(error.message);}
+});

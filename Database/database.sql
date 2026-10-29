@@ -135,3 +135,14 @@ CREATE TABLE IF NOT EXISTS timecards(
  created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_timecards_user_date ON timecards(user_id,work_date);
+
+CREATE TABLE IF NOT EXISTS calendar_import_batches (
+ id INTEGER PRIMARY KEY AUTOINCREMENT,
+ user_id INTEGER NOT NULL REFERENCES users(id),
+ course_id INTEGER NOT NULL REFERENCES courses(id),
+ calendar_id INTEGER REFERENCES course_calendars(id),
+ sha256 TEXT NOT NULL,
+ records INTEGER NOT NULL,
+ created_at TEXT NOT NULL DEFAULT (datetime('now')),
+ UNIQUE(course_id,sha256)
+);
