@@ -1,0 +1,27 @@
+======================================================================
+  BACKUP COMPLETO - CORSI IN VIA NAZARIO SAURO 38/40
+======================================================================
+Data di creazione: 29/10/2026 11:26:43
+File: backup_gestionale_ore_2026-10-29_11-26-43.zip
+
+Questo archivio contiene:
+1. 'codice_sito/': Tutti i file del programma (server Python, frontend web,
+   script di avvio e arresto rapido).
+2. 'dati_database/banca_ore.db': Copia consistente del database SQLite
+   contenente profili, corsi, calendari, sessioni e timbrature.
+3. 'dati_database/documents/': Tutti i documenti e allegati caricati.
+
+----------------------------------------------------------------------
+COME RIPRISTINARE IL GESTIONALE (su questo o su un altro Mac/PC):
+----------------------------------------------------------------------
+PASSAGGIO 1 - Ripristino Dati:
+- Crea (se non esiste) la cartella '.gestione_ore_v2' nella tua cartella utente (~/.gestione_ore_v2)
+- Copia il file 'dati_database/banca_ore.db' in '~/.gestione_ore_v2/banca_ore.db'
+- Copia l'intera cartella 'dati_database/documents' in '~/.gestione_ore_v2/documents'
+
+PASSAGGIO 2 - Esecuzione:
+- Estrai la cartella 'codice_sito' dove preferisci (es. Documenti o Desktop)
+- Fai doppio click su 'avvia_server.command' (su Mac) oppure esegui:
+    python3 server.py
+- Apri il browser all'indirizzo: http://localhost:58235
+======================================================================

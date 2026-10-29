@@ -1,0 +1,2950 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>Corsi in Via Nazario Sauro 38/40</title>
+  <link rel="stylesheet" href="/static/style.css?v=7.0">
+  <script src="/static/chart.min.js"></script>
+  <script>
+    // Fail-safe global error watchdog
+    function hideLoaderSafely() {
+      var loader = document.getElementById("authLoadingPlaceholder");
+      var loginCard = document.getElementById("authLoginCard");
+      var app = document.getElementById("app");
+      if (loader && loader.style.display !== "none") {
+        loader.style.display = "none";
+        if (!app || app.style.display !== "block") {
+          if (loginCard) loginCard.style.display = "block";
+        }
+      }
+    }
+    window.addEventListener('error', function(e) {
+      console.warn("Global startup error caught:", e.message);
+      hideLoaderSafely();
+    });
+    window.addEventListener('unhandledrejection', function(e) {
+      console.warn("Unhandled promise rejection caught:", e.reason);
+    });
+    // Safety fallback only if network completely hangs (12 seconds)
+    setTimeout(hideLoaderSafely, 12000);
+  </script>
+</head>
+<body>
+  <!-- ============================================================ -->
+  <!-- AUTHENTICATION SCREEN CONTAINER (ACCESSO BLOCCATO SENZA LOGIN) -->
+  <!-- ============================================================ -->
+  <div id="authScreenContainer" class="auth-wrapper" style="display: flex;">
+    
+    <!-- Placeholder di caricamento iniziale -->
+    <div id="authLoadingPlaceholder" class="text-center py-5" style="color: var(--text-muted); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;" class="spinner-inline">⏳</div>
+      <div style="font-weight: 600; font-size: 1.1rem; color: var(--navy);">Caricamento Portale...</div>
+    </div>
+
+    <!-- 1. PRIMO ACCESSO: CONFIGURAZIONE PROFILO ADMIN -->
+    <div id="authSetupAdminCard" class="auth-card" style="display: none;">
+      <div class="auth-header">
+        <div class="auth-brand-icon">👑</div>
+        <h2>Configurazione Primo Accesso</h2>
+        <p>Crea il Profilo Amministratore (Admin)</p>
+      </div>
+      <div class="auth-body">
+        <!-- Domanda Account Esistente -->
+        <div class="auth-switch-prompt mb-3 p-3 text-center" style="background: var(--bg-subtle); border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+          <span style="font-size: 0.92rem; font-weight: 600;">Sei già in possesso di un account?</span>
+          <button type="button" class="btn btn-outline btn-sm font-bold" id="btnAdminGoToLogin">🔐 Fai il Login ➡️</button>
+        </div>
+
+        <div class="alert-box alert-info mb-3">
+          👋 <strong>Primo Accesso al Portale:</strong> Crea il tuo account <strong>👑 Amministratore</strong> per avere il controllo completo su corsi, tutor, calendari e documenti.
+        </div>
+        <form id="formAuthSetupAdmin" autocomplete="off">
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="authAdminName"><strong>Nome e Cognome:</strong> <span class="text-danger">*</span></label>
+              <input type="text" id="authAdminName" class="form-input" required placeholder="Es. Mario Rossi">
+            </div>
+            <div class="form-group col-6">
+              <label for="authAdminEmail"><strong>Email:</strong> <span class="text-danger">*</span></label>
+              <input type="email" id="authAdminEmail" class="form-input" required placeholder="mario.rossi@esempio.it">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="authAdminPassword"><strong>Password:</strong> <span class="text-danger">*</span></label>
+              <input type="password" id="authAdminPassword" class="form-input" required placeholder="Minimo 6 caratteri" minlength="6">
+            </div>
+            <div class="form-group col-6">
+              <label for="authAdminPasswordConfirm"><strong>Conferma Password:</strong> <span class="text-danger">*</span></label>
+              <input type="password" id="authAdminPasswordConfirm" class="form-input" required placeholder="Ripeti la password" minlength="6">
+            </div>
+          </div>
+          <div class="form-group mb-3">
+            <label for="authAdminRole"><strong>Ruolo del Profilo:</strong> <span class="text-danger">*</span></label>
+            <select id="authAdminRole" class="form-select font-bold">
+              <option value="admin" selected>👑 Amministratore (Admin)</option>
+              <option value="tutor">🎓 Tutor d'aula</option>
+            </select>
+          </div>
+
+          <!-- Prompt Doppio Ruolo (mostrato se Ruolo = Amministratore) -->
+          <div id="authAdminDoubleRoleBox" class="checkbox-box p-3 mb-3" style="background: var(--bg-secondary); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <label class="d-flex items-center gap-2" style="cursor: pointer; font-size: 0.95rem;">
+              <input type="checkbox" id="authAdminIsTutor" checked style="width: 18px; height: 18px; accent-color: var(--primary);">
+              <span>
+                <strong>Assegna anche il ruolo di Tutor (Doppio Ruolo: Admin + Tutor)</strong>
+                <small class="text-muted d-block" style="font-size: 0.8rem; margin-top: 2px;">
+                  Spunta questa casella se devi registrare e gestire anche le tue ore personali e il tuo monte ore corsi. Se deselezionata, sarai un Amministratore puro dedicato alla gestione di calendari, docenti, corsi e documenti di tutti.
+                </small>
+              </span>
+            </label>
+          </div>
+          <div id="authAdminError" class="auth-alert-error" style="display:none;"></div>
+          <button type="submit" class="btn btn-primary btn-block btn-lg mt-3" id="btnSubmitAuthSetupAdmin">
+            🚀 Registra Profilo & Accedi
+          </button>
+        </form>
+      </div>
+      <div class="auth-footer d-flex justify-between items-center flex-wrap gap-2">
+        <small class="text-muted">Riceverai un'email con la conferma della registrazione.</small>
+        <button type="button" class="btn btn-link btn-sm" id="btnAdminGoToLoginFooter">Hai già un account? <strong>Fai Login ➡️</strong></button>
+      </div>
+    </div>
+
+    <!-- 2. LOGIN (OBBLIGATORIO DAL SECONDO ACCESSO IN POI) -->
+    <div id="authLoginCard" class="auth-card" style="display: none;">
+      <div class="auth-header">
+        <div class="auth-brand-icon">🏫</div>
+        <h2>Accesso al Gestionale</h2>
+        <p>Corsi in Via Nazario Sauro 38/40</p>
+      </div>
+      <div class="auth-body">
+        <div class="auth-switch-prompt mb-3 p-3 text-center" style="background: var(--bg-subtle); border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+          <span style="font-size: 0.92rem; font-weight: 600;">Non hai ancora un account?</span>
+          <button type="button" class="btn btn-outline btn-sm font-bold" id="btnLoginGoToRegisterTop">✨ Crea Profilo ➡️</button>
+        </div>
+        <form id="formAuthLogin" autocomplete="on">
+          <div class="form-group mb-3">
+            <label for="authLoginIdentifier"><strong>Nome e Cognome oppure E-mail:</strong> <span class="text-danger">*</span></label>
+            <input type="text" id="authLoginIdentifier" class="form-input font-bold" required placeholder="Es. Mario Rossi o mario@esempio.it" autocomplete="username">
+          </div>
+          <div class="form-group mb-3">
+            <label for="authLoginPassword"><strong>Password:</strong> <span class="text-danger">*</span></label>
+            <input type="password" id="authLoginPassword" class="form-input font-bold" required placeholder="Inserisci la password" autocomplete="current-password">
+          </div>
+          <div id="authLoginError" class="auth-alert-error" style="display:none;"></div>
+          <button type="submit" class="btn btn-primary btn-block btn-lg mt-3" id="btnSubmitAuthLogin">
+            🔐 Accedi al Portale
+          </button>
+        </form>
+      </div>
+      <div class="auth-footer d-flex justify-between items-center">
+        <span class="text-sm text-muted">Sei un nuovo collaboratore?</span>
+        <button type="button" class="btn btn-link btn-sm" id="btnGoToRegisterTutor">Crea Profilo ➡️</button>
+      </div>
+    </div>
+
+    <!-- 3. REGISTRAZIONE NUOVO UTENTE -->
+    <div id="authRegisterTutorCard" class="auth-card" style="display: none;">
+      <div class="auth-header">
+        <div class="auth-brand-icon">🎓</div>
+        <h2>Registrazione Nuovo Profilo</h2>
+        <p>Crea il tuo account di accesso al portale</p>
+      </div>
+      <div class="auth-body">
+        <div class="auth-switch-prompt mb-3 p-3 text-center" style="background: var(--bg-subtle); border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+          <span style="font-size: 0.92rem; font-weight: 600;">Sei già in possesso di un account?</span>
+          <button type="button" class="btn btn-outline btn-sm font-bold" id="btnTutorGoToLoginTop">🔐 Fai il Login ➡️</button>
+        </div>
+        <form id="formAuthRegisterTutor" autocomplete="off">
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="authTutorName"><strong>Nome e Cognome:</strong> <span class="text-danger">*</span></label>
+              <input type="text" id="authTutorName" class="form-input" required placeholder="Es. Anna Bianchi">
+            </div>
+            <div class="form-group col-6">
+              <label for="authTutorEmail"><strong>Email:</strong> <span class="text-danger">*</span></label>
+              <input type="email" id="authTutorEmail" class="form-input" required placeholder="anna.bianchi@esempio.it">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="authTutorPassword"><strong>Password:</strong> <span class="text-danger">*</span></label>
+              <input type="password" id="authTutorPassword" class="form-input" required placeholder="Minimo 6 caratteri" minlength="6">
+            </div>
+            <div class="form-group col-6">
+              <label for="authTutorPasswordConfirm"><strong>Conferma Password:</strong> <span class="text-danger">*</span></label>
+              <input type="password" id="authTutorPasswordConfirm" class="form-input" required placeholder="Ripeti la password" minlength="6">
+            </div>
+          </div>
+          <input type="hidden" id="authTutorRole" value="tutor">
+          <input type="hidden" id="authTutorIsTutor" value="1">
+          <div id="authTutorError" class="auth-alert-error" style="display:none;"></div>
+          <button type="submit" class="btn btn-purple btn-block btn-lg mt-3" id="btnSubmitAuthRegisterTutor">
+            ✨ Completa Registrazione
+          </button>
+        </form>
+      </div>
+      <div class="auth-footer d-flex justify-between items-center">
+        <span class="text-sm text-muted">Hai già un account?</span>
+        <button type="button" class="btn btn-link btn-sm" id="btnGoToLogin">⬅️ Torna al Login</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="app" style="display: none;">
+    <!-- UNIFIED STICKY APP HEADER (NAVBAR + NAVIGATION TABS) -->
+    <div class="app-top-sticky-container">
+      <!-- TOP NAVIGATION BAR -->
+      <header class="top-nav">
+        <div class="nav-brand">
+          <div class="brand-icon">🏫</div>
+          <div>
+            <h1 style="white-space: nowrap; margin: 0; font-size: 1.25rem; font-weight: 700;">Corsi in Via Nazario Sauro 38/40</h1>
+          </div>
+        </div>
+
+        <div class="nav-controls">
+          <!-- Admin Global Employee View Switcher -->
+          <div class="admin-view-selector" id="adminViewSelectorContainer" style="display:none;">
+            <span class="admin-badge-label">👑 Gestisci Dati di:</span>
+            <select id="adminSelectViewEmployee" class="form-select form-select-sm"></select>
+          </div>
+
+          <!-- Profile / Active User Badge & Logout -->
+          <div class="user-profile-badge">
+            <div class="user-avatar" id="navUserAvatar">-</div>
+            <div class="user-details">
+              <span class="user-name" id="navUserName">-</span>
+              <span class="user-role-pill role-admin" id="navUserRole">-</span>
+            </div>
+            <button class="btn btn-outline btn-sm ml-2 font-bold" id="btnNavOpenContractSchedule" title="Visualizza e gestisci i tuoi contratti lavorativi e orari da contratto">
+              📜 Contratti & Orari
+            </button>
+            <button class="btn btn-danger btn-sm ml-2" id="btnLogout" title="Disconnettiti dal gestionale">
+              🚪 Esci
+            </button>
+          </div>
+
+
+          <!-- Quick Action 1: Registra Lavoro in Sede -->
+          <button class="btn btn-primary font-bold" id="btnOpenEntrySede" title="Registra giornata di lavoro in sede/ufficio (segreteria, riunioni, preparazione)">
+            <span>🏢</span> Lavoro in Sede
+          </button>
+
+          <!-- Quick Action 2: Registra Presenza Corso da File -->
+          <button class="btn btn-purple font-bold" id="btnOpenEntryCourse" title="Carica file Excel o CSV con le date e le ore di presenza già compilate">
+            <span>📂</span> Carica Presenze File
+          </button>
+
+          <!-- Fallback/Legacy button ID (hidden) -->
+          <button id="btnOpenNewEntryModal" style="display: none !important;" aria-hidden="true"></button>
+
+          <!-- Quick Action: Nuovo Corso -->
+          <button class="btn btn-amber font-bold" id="btnOpenNewCourseModal" title="Aggiungi un nuovo corso formativo">
+            <span>📚</span> + Corso
+          </button>
+
+          <!-- Excel Export Quick Button -->
+          <button class="btn btn-success" id="btnQuickExportExcel" title="Esporta in Excel (.xlsx)">
+            <span class="icon">📊</span> Esporta Excel
+          </button>
+
+          <!-- Theme Toggle -->
+          <button class="btn btn-icon" id="btnThemeToggle" title="Cambia tema chiaro/scuro">
+            🌓
+          </button>
+        </div>
+      </header>
+
+      <!-- MAIN APP TABS (MACRO-AREE PRINCIPALI) -->
+      <nav class="nav-tabs">
+        <button class="tab-btn active" data-tab="tab-master-calendar" id="tabBtnMasterCalendar">
+          📅 Calendario Corsi & Lezioni
+        </button>
+        <button class="tab-btn" data-tab="tab-courses" id="tabBtnCourses">
+          📚 Corsi di Formazione
+        </button>
+        <button class="tab-btn" data-tab="tab-admin-hours" id="tabBtnAdminHours" style="display: none;">
+          📊 Riepilogo Ore Tutor & Docenti
+        </button>
+        <button class="tab-btn" data-tab="tab-documents" id="tabBtnDocuments">
+          📁 Documenti & File
+        </button>
+        <button class="tab-btn" data-tab="tab-employees" id="tabBtnEmployees">
+          👥 Gestione Tutor & Profili
+        </button>
+        <button class="tab-btn" data-tab="tab-timetracking" id="tabBtnTimetracking">
+          👤 Area Personale Tutor & Contratti
+        </button>
+        <button class="tab-btn" data-tab="tab-tools" id="tabBtnTools">
+          ⚙️ Strumenti & Sync
+        </button>
+      </nav>
+    </div>
+
+    <!-- CONTENT CONTAINER -->
+    <main class="main-content">
+
+      <!-- ============================================================ -->
+      <!-- MACRO-AREA 1 (HOMEPAGE): CALENDARIO CORSI D'AULA (SOLO AULA, ED CORSI AFFIANCATI) -->
+      <!-- ============================================================ -->
+      <section id="tab-master-calendar" class="tab-pane active">
+        <!-- Control & Filter Bar -->
+        <div class="card p-3 mb-3">
+          <div class="d-flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h2 class="h4 font-bold" style="margin: 0; font-size: 1.2rem; color: var(--navy);">
+                📅 Calendario Corsi & Lezioni d'Aula
+              </h2>
+              <p class="text-xs text-muted mt-1" style="margin-bottom: 0;">
+                Vista orizzontale comparativa dei corsi (Escluso lo Stage). Lezioni allineate giorno per giorno con dettaglio <strong>ED, orario, modulo e docente</strong>.
+              </p>
+            </div>
+
+            <!-- Action Badges / Summary -->
+            <div class="d-flex items-center gap-2 flex-wrap">
+              <span class="badge badge-info font-bold" id="aulaGridSummaryBadge">Caricamento lezioni...</span>
+              <button class="btn btn-outline btn-sm font-bold" id="btnAulaGridJumpToday">
+                📍 Vai a Oggi
+              </button>
+              <button class="btn btn-success btn-sm font-bold" id="btnAulaGridSyncAll" title="Sincronizza automaticamente tutte le presenze delle lezioni passate nella tua Banca Ore">
+                ⚡ Sincronizza Presenze
+              </button>
+            </div>
+          </div>
+
+          <!-- Interactive Filters Row -->
+          <div class="d-flex items-center gap-3 flex-wrap mt-3 pt-3" style="border-top: 1px solid var(--border-color);">
+            <!-- Month Filter -->
+            <div class="d-flex items-center gap-2">
+              <label for="selectAulaGridMonth" class="text-xs font-bold text-muted">Mese:</label>
+              <select id="selectAulaGridMonth" class="form-select form-select-sm" style="min-width: 150px;">
+                <option value="all">Tutti i Mesi</option>
+              </select>
+            </div>
+
+            <!-- Docente Filter -->
+            <div class="d-flex items-center gap-2">
+              <label for="selectAulaGridDocente" class="text-xs font-bold text-muted">Docente:</label>
+              <select id="selectAulaGridDocente" class="form-select form-select-sm" style="min-width: 170px;">
+                <option value="all">Tutti i Docenti</option>
+              </select>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="d-flex items-center gap-2">
+              <label for="selectAulaGridStatus" class="text-xs font-bold text-muted">Stato:</label>
+              <select id="selectAulaGridStatus" class="form-select form-select-sm" style="min-width: 140px;">
+                <option value="all">Tutte le Giornate</option>
+                <option value="past">Solo Svolte (Passate)</option>
+                <option value="future">Solo Future (In Corso)</option>
+                <option value="tests">📝 Solo Test di Modulo</option>
+              </select>
+            </div>
+
+            <!-- Instant Search Input -->
+            <div class="d-flex items-center gap-2 flex-1" style="min-width: 200px;">
+              <input type="text" id="inputAulaGridSearch" class="form-input form-input-sm" placeholder="🔍 Cerca modulo, docente o ED...">
+            </div>
+
+            <!-- Reset Filters -->
+            <button class="btn btn-outline btn-sm" id="btnResetAulaGridFilters" title="Resetta tutti i filtri">
+              🔄 Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Aula Multi-Course Horizontal Matrix Table -->
+        <div class="aula-grid-card">
+          <div class="aula-grid-wrapper">
+            <table class="aula-grid-table" id="tableAulaGrid">
+              <thead>
+                <tr id="aulaGridTheadRow">
+                  <th class="aula-sticky-date-th">📅 Data / Giorno</th>
+                  <!-- Course column headers dynamically rendered via JS -->
+                </tr>
+              </thead>
+              <tbody id="aulaGridTableBody">
+                <!-- Shared date rows dynamically rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- MACRO-AREA: AREA PERSONALE TUTOR, CONTRATTI & BANCA ORE -->
+      <!-- ============================================================ -->
+      <section id="tab-timetracking" class="tab-pane">
+        <!-- Subnav Tabs for Time Tracking & Tutor Dashboard -->
+        <div class="subnav-tabs">
+          <button class="subtab-btn active" data-subpane="subpane-tutor-dashboard" id="subtabBtnTutorDashboard">
+            👤 Dashboard Personale & Corsi Abbinati
+          </button>
+          <button class="subtab-btn" data-subpane="subpane-contracts" id="subtabBtnContracts">
+            📜 Contratti di Lavoro & Orari Generici
+          </button>
+          <button class="subtab-btn" data-subpane="subpane-weekly" id="subtabBtnWeekly">
+            🗓️ Settimana Corrente
+          </button>
+          <button class="subtab-btn" data-subpane="subpane-dashboard" id="subtabBtnDashboard">
+            📊 Saldo Ore & Cruscotto
+          </button>
+          <button class="subtab-btn" data-subpane="subpane-calendar" id="subtabBtnCalendar">
+            📅 Calendario Mensile
+          </button>
+          <button class="subtab-btn" data-subpane="subpane-history" id="subtabBtnHistory">
+            📋 Registro Movimenti
+          </button>
+        </div>
+
+        <!-- ------------------------------------------------------------ -->
+        <!-- SUBPANE 0: DASHBOARD PERSONALE DEL TUTOR & CORSI ABBINATI -->
+        <!-- ------------------------------------------------------------ -->
+        <div id="subpane-tutor-dashboard" class="subpane active">
+          <!-- Tutor Hero Banner -->
+          <div class="tutor-hero-card" id="tutorHeroCard">
+            <div class="tutor-hero-profile">
+              <div class="tutor-hero-avatar" id="tutorHeroAvatar">AG</div>
+              <div>
+                <div class="d-flex items-center gap-2 flex-wrap">
+                  <h2 class="h3 font-bold" id="tutorHeroName" style="margin:0; color:var(--navy);">Caricamento Tutor...</h2>
+                  <span class="user-role-pill role-admin" id="tutorHeroRoleBadge">👑 Admin & Tutor</span>
+                  <span class="badge badge-info font-bold" id="tutorHeroContractBadge">2 Contratti Attivi</span>
+                </div>
+                <p class="text-sm text-muted mt-1" style="margin-bottom:0;" id="tutorHeroEmail">
+                  tutor@corsinazariosauro.it
+                </p>
+              </div>
+            </div>
+
+            <div class="tutor-hero-stats">
+              <div class="tutor-stat-pill">
+                <span class="tutor-stat-lbl">Orario Contrattuale</span>
+                <span class="tutor-stat-val" id="tutorHeroWeeklyHours">20.0 h/sett</span>
+              </div>
+              <div class="tutor-stat-pill">
+                <span class="tutor-stat-lbl">Corsi Abbinati</span>
+                <span class="tutor-stat-val" id="tutorHeroCoursesCount">1 Corso</span>
+              </div>
+              <div class="tutor-stat-pill">
+                <span class="tutor-stat-lbl">Saldo Banca Ore</span>
+                <span class="tutor-stat-val text-green" id="tutorHeroBankBalance">+0.0 h</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions Bar & Quick Controls -->
+          <div class="card p-3 mb-4">
+            <div class="d-flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 class="h4 font-bold" style="margin:0;">📚 I Miei Corsi Abbinati & Calendari d'Aula</h3>
+                <p class="text-xs text-muted mt-1" style="margin:0;">
+                  Clicca su qualsiasi corso per espanderne i calendari, verificare i moduli didattici, le date dei test finali e registrare rapidamente le presenze.
+                </p>
+              </div>
+              <div class="d-flex items-center gap-2 flex-wrap">
+                <button class="btn btn-purple font-bold" id="btnOpenAssignCourseModal" title="Scegli tra i corsi del gestionale e abbinali al tuo profilo">
+                  🔗 + Abbinati a un Corso
+                </button>
+                <button class="btn btn-outline font-bold" id="btnGoToContracts" title="Visualizza e gestisci i tuoi contratti lavorativi in vigore">
+                  📜 Contratti di Lavoro
+                </button>
+                <button class="btn btn-primary font-bold" onclick="window.openEntryModalForSede()">
+                  🏢 Lavoro in Sede
+                </button>
+                <button class="btn btn-success font-bold" onclick="window.openEntryModal()">
+                  ➕ Registra Presenza
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Assigned Courses Accordion Container -->
+          <div id="tutorAssignedCoursesContainer">
+            <!-- Dynamically populated via JS -->
+          </div>
+        </div>
+
+        <!-- ------------------------------------------------------------ -->
+        <!-- SUBPANE: GESTIONE CONTRATTI DI LAVORO & ORARI GENERICI -->
+        <!-- ------------------------------------------------------------ -->
+        <div id="subpane-contracts" class="subpane">
+          <div class="card p-3 mb-3">
+            <div class="d-flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <h3 class="h4 font-bold" style="margin:0;">📜 Contratti Lavorativi & Orario Contrattuale d'Ufficio</h3>
+                <p class="text-xs text-muted mt-1" style="margin:0;">
+                  Gestisci i tuoi contratti in vigore (es. indeterminato, determinato, CO.CO.CO, ritenuta d'acconto, P.IVA, stage, collaborazione), gli orari di lavoro generici settimanali e i rinnovi.
+                </p>
+              </div>
+              <button class="btn btn-primary font-bold" id="btnOpenAddContractModal">
+                ➕ Aggiungi Nuovo Contratto
+              </button>
+            </div>
+          </div>
+
+          <!-- Explanatory Banner on Integration Rule -->
+          <div class="content-box mb-4" style="background: linear-gradient(135deg, rgba(37,99,235,0.05) 0%, rgba(124,58,237,0.05) 100%); border-left: 4px solid var(--primary);">
+            <div class="d-flex items-center gap-2 mb-1">
+              <span style="font-size: 1.25rem;">💡</span>
+              <h4 style="margin:0; font-size: 0.95rem;">Come funzionano gli Orari Contrattuali e l'Integrazione con i Corsi</h4>
+            </div>
+            <p class="text-xs text-muted" style="margin: 0; line-height: 1.5;">
+              Gli orari impostati nei tuoi contratti (ad es. dal lunedì al venerdì 09:00 - 13:00) stabiliscono il tuo orario lavorativo standard in sede/ufficio. Per i corsi a cui sei abbinato e per cui è attiva l'opzione <strong>"🔗 Integra con ore contrattuali"</strong>, il lavoro d'ufficio e da tutor si svolgono nelle stesse ore: <strong>il sistema calcola solo le ore effettivamente lavorate (es. 4 ore, non 8!)</strong> senza generare sovrapposizioni né duplicazioni. Se invece un corso non è integrato, il sistema controllerà rigorosamente l'assenza di sovrapposizioni orarie.
+            </p>
+          </div>
+
+          <!-- Contracts Grid -->
+          <div class="contracts-grid" id="tutorContractsGrid">
+            <!-- Dynamically populated via JS -->
+          </div>
+        </div>
+
+        <!-- ------------------------------------------------------------ -->
+        <!-- SUBPANE 1: SETTIMANA IN CORSO & ORARI DELLE LEZIONI -->
+        <!-- ------------------------------------------------------------ -->
+        <div id="subpane-weekly" class="subpane">
+          <div class="week-nav-bar">
+            <div class="d-flex items-center gap-2">
+              <button class="btn btn-outline btn-sm" id="btnPrevWeek">◀ Settimana Prec.</button>
+              <button class="btn btn-outline btn-sm" id="btnCurrentWeek">Oggi</button>
+              <button class="btn btn-outline btn-sm" id="btnNextWeek">Settimana Succ. ▶</button>
+            </div>
+
+            <h2 class="week-label" id="weeklyScheduleLabel">Settimana Corrente</h2>
+
+            <div class="week-kpis">
+              <span class="badge badge-info" id="weeklySchedHours">Previste: 0h</span>
+              <span class="badge badge-gray" id="weeklyActHours">Svolte: 0h</span>
+              <span class="badge badge-green" id="weeklyVariance">Delta: +0.0h</span>
+            </div>
+          </div>
+
+          <!-- Weekly Days Grid (Lunedì - Domenica) -->
+          <div class="weekly-days-grid" id="weeklyDaysGrid">
+            <!-- Populated dynamically via JS -->
+          </div>
+
+          <!-- Weekly Bottom Explanatory Box -->
+          <div class="content-box mt-4">
+            <div class="d-flex justify-between items-center">
+              <div>
+                <h4>ℹ️ Come funziona il calcolo delle uscite anticipate e posticipate</h4>
+                <p class="text-muted text-sm mt-1">
+                  Ogni volta che inserisci l'<strong>orario previsto</strong> della lezione (es. 09:00 - 13:00) e l'<strong>orario effettivo</strong> svolto, il sistema calcola in automatico:
+                </p>
+                <ul class="info-bullet-list">
+                  <li>🟢 <strong>Uscita posticipata o ingresso anticipato</strong>: genera <strong>Ore Maturate / Straordinario (+)</strong>, incrementando la tua Banca del Tempo.</li>
+                  <li>🟡 <strong>Uscita anticipata o ritardo</strong>: genera <strong>Ore di Debito (-)</strong>, assorbendo ore dalla Banca del Tempo.</li>
+                </ul>
+              </div>
+              <button class="btn btn-primary" id="btnWeekAddEntryModal">➕ Inserisci Orario Giornata</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ------------------------------------------------------------ -->
+        <!-- SUBPANE 2: CRUSCOTTO SALDO ORE & BANCA (FEDELE ALL'EXCEL) -->
+        <!-- ------------------------------------------------------------ -->
+        <div id="subpane-dashboard" class="subpane">
+          <!-- Top Status Banner -->
+          <div class="employee-banner">
+            <div class="emp-info">
+              <h2 id="dashEmpName">Caricamento...</h2>
+              <p id="dashEmpRole" class="text-muted">Tutor d'aula & Coordinatore</p>
+            </div>
+            <div class="emp-meta-badges">
+              <span class="badge badge-info" id="badgeStdDay">Giornata standard: 7h</span>
+              <span class="badge badge-info" id="badgeShortDay">Giornata breve: 4h</span>
+              <span class="badge badge-info" id="badgePtWeek">Part-time: 18h/sett</span>
+            </div>
+          </div>
+
+          <!-- KPI GRID (MATCHING USER'S EXCEL CRUSCOTTO) -->
+          <div class="kpi-grid">
+            <div class="kpi-card card-blue">
+              <div class="kpi-label">TOTALE ORE ACCREDITATE (INIZIALI)</div>
+              <div class="kpi-value" id="kpiAccreditate">124.0</div>
+              <div class="kpi-subtext">Monte ore iniziale pregresso (Banca Ore)</div>
+            </div>
+
+            <div class="kpi-card card-green">
+              <div class="kpi-label">ORE STRAORDINARI SVOLTE (+)</div>
+              <div class="kpi-value text-green" id="kpiMaturate">+85.0</div>
+              <div class="kpi-subtext">Ore svolte oltre l'orario (Celle Verdi)</div>
+            </div>
+
+            <div class="kpi-card card-yellow">
+              <div class="kpi-label">TOTALE ORE UTILIZZATE / DEBITO (-)</div>
+              <div class="kpi-value text-yellow" id="kpiUtilizzate">-73.0</div>
+              <div class="kpi-subtext">Uscite anticipate e permessi (Celle Gialle)</div>
+            </div>
+
+            <div class="kpi-card card-hero">
+              <div class="kpi-label">ORE RIMANENTI</div>
+              <div class="kpi-value-hero" id="kpiRimanenti">51.00</div>
+              <div class="kpi-status-badge" id="kpiStatusBadge">In Attivo</div>
+              <div class="kpi-subtext">Formula: Accreditate (124h) - Utilizzate (73h)</div>
+            </div>
+          </div>
+
+          <!-- CONVERSIONS & CHART SECTION -->
+          <div class="dashboard-middle-grid">
+            <div class="content-box">
+              <div class="box-header">
+                <h3>🌴 Indicatori di Conversione Ferie & Recupero</h3>
+              </div>
+              <div class="conversion-list">
+                <div class="conversion-item">
+                  <div class="conv-label">
+                    <strong>Giorni extra di ferie pagati possibili</strong>
+                    <span class="text-muted">(su base giornata da 7 ore)</span>
+                  </div>
+                  <div class="conv-val" id="convFerie7h">7.29 gg</div>
+                </div>
+
+                <div class="conversion-item">
+                  <div class="conv-label">
+                    <strong>Giorni extra di ferie pagati possibili</strong>
+                    <span class="text-muted">(su base giornata breve da 4 ore)</span>
+                  </div>
+                  <div class="conv-val" id="convFerie4h">12.75 gg</div>
+                </div>
+
+                <div class="conversion-item">
+                  <div class="conv-label">
+                    <strong>Settimane lavorative coperte</strong>
+                    <span class="text-muted">(su base part-time da 18 ore)</span>
+                  </div>
+                  <div class="conv-val" id="convSett18h">2.83 sett.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="content-box">
+              <div class="box-header">
+                <h3>🍩 Ripartizione Banca Ore</h3>
+                <span class="text-muted text-sm">Ore Utilizzate vs Ore Rimaste</span>
+              </div>
+              <div class="chart-container">
+                <canvas id="donutChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- PROSPETTO MENSILE DI DETTAGLIO TABLE -->
+          <div class="content-box mt-4">
+            <div class="box-header d-flex justify-between items-center">
+              <div>
+                <h3>PROSPETTO MENSILE DI DETTAGLIO (2026 - 2027)</h3>
+                <p class="text-muted text-sm">Riepilogo progressivo ore maturate, debito/utilizzate e saldo mese</p>
+              </div>
+              <button class="btn btn-outline btn-sm" id="btnRefreshDash">🔄 Aggiorna Dati</button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table" id="tableMonthlySummary">
+                <thead>
+                  <tr>
+                    <th>Mese / Anno</th>
+                    <th class="text-right">Ore Utilizzate (Gialle)</th>
+                    <th class="text-right">Ore Straordinario (Verdi)</th>
+                    <th class="text-right">Saldo Mese</th>
+                    <th class="text-right">Ore Rimaste Progressive</th>
+                    <th class="text-center">Stato</th>
+                    <th class="text-center">Voci</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyMonthlySummary"></tbody>
+                <tfoot>
+                  <tr id="tfootMonthlySummary" class="tfoot-total">
+                    <td>TOTALE COMPLESSIVO</td>
+                    <td class="text-right font-bold" id="totSummaryUtilizzate">0.0</td>
+                    <td class="text-right font-bold" id="totSummaryMaturate">0.0</td>
+                    <td class="text-right font-bold" id="totSummarySaldo">0.0</td>
+                    <td class="text-right font-bold" id="totSummaryRimanenti">0.0</td>
+                    <td colspan="2"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ------------------------------------------------------------ -->
+        <!-- SUBPANE 3: VISTA CALENDARIO MENSILE (A BLOCCHI EXCEL) -->
+        <!-- ------------------------------------------------------------ -->
+        <div id="subpane-calendar" class="subpane">
+          <div class="section-intro-bar">
+            <div>
+              <h2>🗓️ Calendario Mensile Straordinari & Ore Utilizzate</h2>
+              <p class="text-muted">
+                Visualizzazione a blocchi mensili ordinati cronologicamente. 
+                <span class="badge badge-yellow">Giallo = Ore Utilizzate / Debito</span> 
+                <span class="badge badge-green">Verde = Ore Maturate / Straordinario</span>
+              </p>
+            </div>
+            <button class="btn btn-primary" id="btnCalAddEntry">➕ Aggiungi Nuova Giornata</button>
+          </div>
+
+          <div class="calendar-filter-bar">
+            <label>Filtra Mese:</label>
+            <select id="calMonthFilter" class="form-select form-select-sm">
+              <option value="ALL">Visualizza Tutti i Mesi (Griglia Completa)</option>
+            </select>
+          </div>
+
+          <div id="calendarMonthGrid" class="calendar-months-grid"></div>
+        </div>
+
+        <!-- ------------------------------------------------------------ -->
+        <!-- SUBPANE 4: REGISTRO MOVIMENTI (STORICO COMPLETO) -->
+        <!-- ------------------------------------------------------------ -->
+        <div id="subpane-history" class="subpane">
+          <div class="section-intro-bar">
+            <div>
+              <h2>📋 Registro Analitico Movimenti</h2>
+              <p class="text-muted">Storico cronologico di tutte le giornate con saldo ore residue progressivo.</p>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline" id="btnExportCSV">📥 Esporta CSV</button>
+              <button class="btn btn-success" id="btnExportExcelFromHistory">📊 Esporta Excel</button>
+              <button class="btn btn-primary" id="btnHistoryAddEntry">➕ Registra Giornata</button>
+            </div>
+          </div>
+
+          <div class="filters-card">
+            <div class="filter-group">
+              <label>Cerca nel registro:</label>
+              <input type="text" id="filterSearch" class="form-input" placeholder="Cerca per corso, causale, note...">
+            </div>
+
+            <div class="filter-group">
+              <label>Filtra per Mese:</label>
+              <select id="filterMonth" class="form-select">
+                <option value="">Tutti i Mesi</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label>Filtra per Corso:</label>
+              <select id="filterCourse" class="form-select">
+                <option value="">Tutti i Corsi</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label>Filtra per Tipologia:</label>
+              <select id="filterType" class="form-select">
+                <option value="">Tutte le Tipologie</option>
+                <option value="maturata">Solo Ore Maturate / Straordinari (Verdi)</option>
+                <option value="utilizzata">Solo Ore Utilizzate / Debito (Gialle)</option>
+                <option value="presenza_corso">Solo Presenze Corsi (Lezioni)</option>
+                <option value="ordinaria">Solo Ore Ordinarie (Sede)</option>
+              </select>
+            </div>
+
+            <button class="btn btn-outline btn-sm self-end" id="btnResetFilters">Azzera Filtri</button>
+          </div>
+
+          <div class="content-box">
+            <div class="table-responsive">
+              <table class="data-table" id="tableHistory">
+                <thead>
+                  <tr>
+                    <th style="width: 45px;">N°</th>
+                    <th>Data</th>
+                    <th>Giorno</th>
+                    <th>Corso / Attività</th>
+                    <th>Orario Prev.</th>
+                    <th>Orario Eff.</th>
+                    <th class="text-right">Ore Utilizzate (Gialle)</th>
+                    <th class="text-right">Ore Maturate (Verdi)</th>
+                    <th class="text-right">Saldo Residuo (h)</th>
+                    <th>Note</th>
+                    <th class="text-center" style="width: 90px;">Azioni</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyHistory"></tbody>
+                <tfoot>
+                  <tr id="tfootHistory" class="tfoot-total">
+                    <td colspan="6" class="text-right font-bold">TOTALI REGISTRO:</td>
+                    <td class="text-right font-bold" id="histTotUtilizzate">0.0</td>
+                    <td class="text-right font-bold" id="histTotMaturate">0.0</td>
+                    <td class="text-right font-bold" id="histTotSaldo">0.0</td>
+                    <td colspan="2"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- MACRO-AREA: RIEPILOGO ORE TUTOR & DOCENTI (SUPERVISIONE ADMIN) -->
+      <!-- ============================================================ -->
+      <section id="tab-admin-hours" class="tab-pane">
+        <div class="section-intro-bar mb-4">
+          <div>
+            <h2>📊 Riepilogo Ore Tutor & Docenti</h2>
+            <p class="text-muted">Supervisione completa di tutte le ore lavorate dai Tutor e delle lezioni d'aula tenute dai Docenti in tutti i corsi.</p>
+          </div>
+          <button class="btn btn-outline" id="btnRefreshAdminHours">
+            🔄 Aggiorna Dati
+          </button>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="dashboard-kpis-grid mb-4">
+          <div class="kpi-card">
+            <span class="kpi-label">👥 Tutor Abilitati</span>
+            <div class="kpi-value text-primary" id="kpiAdminTotalTutors">0</div>
+            <span class="text-muted text-xs">Collaboratori assegnati</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">⏱️ Ore Totali Tutor</span>
+            <div class="kpi-value text-success" id="kpiAdminTotalTutorHours">0.0h</div>
+            <span class="text-muted text-xs">Effettivamente lavorate</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">👨‍🏫 Docenti Assegnati</span>
+            <div class="kpi-value text-purple" id="kpiAdminTotalDocenti">0</div>
+            <span class="text-muted text-xs">Nei calendari d'aula</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">📅 Ore Aula Programmate</span>
+            <div class="kpi-value" id="kpiAdminTotalDocentiHours">0.0h</div>
+            <span class="text-muted text-xs">Da inizio corso</span>
+          </div>
+        </div>
+
+        <!-- SECTION 1: DETTAGLIO ORE TUTOR -->
+        <div class="content-box mb-4">
+          <div class="d-flex justify-between items-center mb-3">
+            <h3 style="margin: 0; font-size: 1.15rem;">🎓 Dettaglio Ore per ciascun Tutor</h3>
+            <span class="user-role-pill role-tutor" id="badgeCountTutors">0 tutor</span>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Tutor</th>
+                  <th>Email</th>
+                  <th>Corsi Assegnati</th>
+                  <th class="text-right">Ore Lavorate Effettive</th>
+                  <th class="text-right">Straordinari Maturati (+)</th>
+                  <th class="text-right">Permessi / Debiti (-)</th>
+                  <th class="text-right">Saldo Banca Ore</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyAdminTutorsSummary">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SECTION 2: DETTAGLIO ORE DOCENTI & MODULI -->
+        <div class="content-box">
+          <div class="d-flex justify-between items-center mb-3">
+            <h3 style="margin: 0; font-size: 1.15rem;">👨‍🏫 Dettaglio Ore e Moduli per ciascun Docente</h3>
+            <span class="user-role-pill role-admin" id="badgeCountDocenti">0 docenti</span>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Docente</th>
+                  <th>Moduli / Unità Formative</th>
+                  <th>Corsi</th>
+                  <th class="text-right">Lezioni</th>
+                  <th class="text-right">Ore Programmate</th>
+                  <th class="text-right">Ore Svolte</th>
+                  <th class="text-right">Ore Confermate</th>
+                  <th class="text-center">Rinvii / Annullate</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyAdminDocentiSummary">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      <!-- ============================================================ -->
+      <section id="tab-courses" class="tab-pane">
+
+        <!-- VISTA 1: ELENCO GENERALE DEI CORSI (DEFAULT) -->
+        <div id="coursesListView">
+          <div class="section-intro-bar">
+            <div>
+              <h2>📚 Corsi di Formazione & Monitoraggio Monte Ore</h2>
+              <p class="text-muted">
+                Seleziona un corso per visualizzare la sua pagina dedicata con il <strong>dettaglio di docenti e tutor</strong>, 
+                il <strong>gestore documentale</strong> del corso e il <strong>calendario con variazione date</strong> per singolo docente o modulo.
+              </p>
+            </div>
+            <div class="d-flex items-center gap-2">
+              <a href="/api/course-calendars/template" class="btn btn-outline" download="Modello_Calendario_Corso.xlsx" title="Scarica il modello Excel preimpostato per creare nuovi corsi">
+                📥 Scarica Modello (.xlsx)
+              </a>
+              <button class="btn btn-primary" id="btnOpenImportCalendarModal" title="Importa un corso e calendario caricando il file Excel o Google Sheets compilato">
+                📤 Importa Calendario Corso
+              </button>
+              <button class="btn btn-purple" id="btnAddCourseBtn">➕ Aggiungi Manuale</button>
+            </div>
+          </div>
+
+          <!-- SYSTEM INTEGRITY & DISCREPANCY AUDITOR BANNER -->
+          <div id="systemDiscrepancyContainer" class="mb-3" style="display: none;"></div>
+
+          <!-- Course Cards Grid -->
+          <div class="courses-card-grid" id="coursesGrid">
+            <!-- Populated dynamically via JS -->
+          </div>
+
+          <!-- Monthly Breakdown of Courses Table -->
+          <div class="content-box mt-4">
+            <div class="box-header d-flex justify-between items-center">
+              <div>
+                <h3>Riepilogo Ore Lavorate nei Corsi nel Mese</h3>
+                <p class="text-muted text-sm">Dettaglio per ciascun corso delle ore ordinarie, maturate oltre orario e uscite anticipate</p>
+              </div>
+              <div class="d-flex items-center gap-2">
+                <label class="text-sm font-bold text-muted">Mese:</label>
+                <select id="courseReportMonthSelect" class="form-select form-select-sm" style="width: 220px;"></select>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table" id="tableMonthlyCourses">
+                <thead>
+                  <tr>
+                    <th>Codice</th>
+                    <th>Corso di Formazione</th>
+                    <th class="text-right">Monte Ore Stabilito</th>
+                    <th class="text-right">Ore Lavorate nel Mese</th>
+                    <th class="text-right">Ore Complessive Erogate</th>
+                    <th class="text-right">Monte Ore Rimanente</th>
+                    <th class="text-center" style="width: 180px;">Avanzamento %</th>
+                    <th class="text-right">Maturate nel Mese (+)</th>
+                    <th class="text-right">Debito nel Mese (-)</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyMonthlyCourses">
+                  <!-- Populated dynamically via JS -->
+                </tbody>
+                <tfoot>
+                  <tr id="tfootMonthlyCourses" class="tfoot-total">
+                    <td colspan="2" class="font-bold">TOTALI ATTIVITÀ MESE:</td>
+                    <td class="text-right font-bold" id="totCourseAllocated">0.0 h</td>
+                    <td class="text-right font-bold" id="totCourseMonthHours">0.0 h</td>
+                    <td class="text-right font-bold" id="totCourseWorked">0.0 h</td>
+                    <td class="text-right font-bold" id="totCourseRemaining">0.0 h</td>
+                    <td></td>
+                    <td class="text-right font-bold text-green" id="totCourseMonthMaturate">+0.0 h</td>
+                    <td class="text-right font-bold text-yellow" id="totCourseMonthUtilizzate">-0.0 h</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISTA 2: SOTTO-PAGINA DEDICATA DEL CORSO SELEZIONATO -->
+        <div id="courseDetailView" style="display: none;">
+          <!-- Header Bar del Corso -->
+          <div class="course-detail-header mb-4">
+            <div class="d-flex justify-between items-center mb-3">
+              <button class="btn btn-outline btn-sm font-bold" id="btnBackToCoursesList">
+                ← Torna a Tutti i Corsi
+              </button>
+              <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-outline btn-sm font-bold" id="btnCourseDetailToggleContract" title="Commuta integrazione tra le ore di questo corso e l'orario contrattuale d'ufficio">
+                  🔗 Integra con ore contrattuali
+                </button>
+                <button class="btn btn-outline btn-sm" id="btnCourseDetailEditMeta">✏️ Modifica Dati Corso</button>
+                <button class="btn btn-outline-danger btn-sm admin-only-btn" id="btnCourseDetailDelete">🗑️ Elimina Corso</button>
+              </div>
+            </div>
+
+            <div class="d-flex justify-between items-center flex-wrap gap-3">
+              <div>
+                <div class="d-flex items-center gap-2">
+                  <span class="course-color-pill" id="detailCourseColorPill" style="width: 16px; height: 16px; border-radius: 50%;"></span>
+                  <span class="course-code-tag" id="detailCourseCode">ED 2274_1</span>
+                  <h2 id="detailCourseTitle" style="margin: 0; font-size: 1.45rem;">Nome del Corso</h2>
+                  <span class="badge badge-info" id="detailCourseStatus">Attivo</span>
+                  <span class="badge" id="detailCourseContractBadge" style="font-size: 0.75rem; font-weight: 700;">🔗 Integrato con Contratto</span>
+                </div>
+                <p class="text-muted text-sm mt-1 mb-0" id="detailCourseNotes">Note sul corso...</p>
+              </div>
+
+              <div class="course-metrics-bar" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-left: auto;">
+                <div class="metric-mini" style="display: flex; flex-direction: column; align-items: flex-end; justify-content: center; background: var(--bg-card, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 6px 14px; min-width: 95px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+                  <span style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted, #64748b); white-space: nowrap; margin-bottom: 2px;">Monte Ore</span>
+                  <strong id="detailCourseTotalHours" class="text-primary font-bold" style="font-size: 1.15rem; line-height: 1.15; white-space: nowrap;">0.0 h</strong>
+                </div>
+                <div class="metric-mini" style="display: flex; flex-direction: column; align-items: flex-end; justify-content: center; background: var(--bg-card, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 6px 14px; min-width: 95px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+                  <span style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted, #64748b); white-space: nowrap; margin-bottom: 2px;">Erogate</span>
+                  <strong id="detailCourseWorkedHours" class="text-gray font-bold" style="font-size: 1.15rem; line-height: 1.15; white-space: nowrap;">0.0 h</strong>
+                </div>
+                <div class="metric-mini" style="display: flex; flex-direction: column; align-items: flex-end; justify-content: center; background: var(--bg-card, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 6px 14px; min-width: 95px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+                  <span style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted, #64748b); white-space: nowrap; margin-bottom: 2px;">Rimanenti</span>
+                  <strong id="detailCourseRemainingHours" class="text-green font-bold" style="font-size: 1.15rem; line-height: 1.15; white-space: nowrap;">0.0 h</strong>
+                </div>
+                <div class="metric-mini" style="display: flex; flex-direction: column; align-items: flex-end; justify-content: center; background: var(--bg-card, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 6px 14px; min-width: 95px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+                  <span style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted, #64748b); white-space: nowrap; margin-bottom: 2px;">Avanzamento</span>
+                  <strong id="detailCourseProgressPct" class="font-bold" style="font-size: 1.15rem; line-height: 1.15; white-space: nowrap;">0%</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigazione Sotto-Pagine del Corso -->
+          <div class="course-subnav-tabs">
+            <button class="course-subtab-btn active" data-coursesubpane="courseSubpaneOverview">
+              📊 1. Panoramica & Avanzamento
+            </button>
+            <button class="course-subtab-btn" data-coursesubpane="courseSubpaneStaffDocs">
+              👨‍🏫 2. Docenti, Tutor & Gestore Documentale
+            </button>
+            <button class="course-subtab-btn" data-coursesubpane="courseSubpaneCalendar">
+              📅 3. Calendario & Variazione Date <span class="badge-yellow-dot" id="courseDetailConflictBadge" style="display:none;">⚠️ Conflitti</span>
+            </button>
+          </div>
+
+          <!-- SOTTO-PAGINA A: PANORAMICA DEL CORSO -->
+          <div id="courseSubpaneOverview" class="course-subpane active">
+            <div class="calendar-meta-grid mb-4">
+              <div class="calendar-meta-item">
+                <span class="meta-label">📅 Periodo Fase Aula:</span>
+                <strong class="meta-val" id="detailMetaAulaDates">Dal -- al --</strong>
+                <small class="meta-sub" id="detailMetaAulaHours">0 ore d'aula previste</small>
+              </div>
+              <div class="calendar-meta-item">
+                <span class="meta-label">💼 Periodo Fase Stage:</span>
+                <strong class="meta-val" id="detailMetaStageDates">Dal -- al --</strong>
+                <small class="meta-sub" id="detailMetaStageHours">0 ore di stage previste</small>
+              </div>
+              <div class="calendar-meta-item">
+                <span class="meta-label">🎓 Tutor d'Aula Incaricato:</span>
+                <strong class="meta-val text-primary" id="detailMetaTutorName">Non assegnato</strong>
+                <small class="meta-sub" id="detailMetaTutorStd">Orario standard: 7h</small>
+              </div>
+              <div class="calendar-meta-item">
+                <span class="meta-label">📊 Stato Sessioni Calendario:</span>
+                <strong class="meta-val" id="detailMetaSessionsCount">0 giornate programmate</strong>
+                <small class="meta-sub" id="detailMetaConflictStatus">Nessuna sovrapposizione</small>
+              </div>
+            </div>
+
+            <!-- Barra di Avanzamento Complessiva -->
+            <div class="content-box">
+              <div class="box-header">
+                <h3>Stato Avanzamento Monte Ore</h3>
+                <span class="text-sm font-bold" id="detailOverviewProgressText">0 / 0 h</span>
+              </div>
+              <div class="progress-track" style="height: 18px; border-radius: 9px;">
+                <div class="progress-fill" id="detailOverviewProgressBar" style="width: 0%; border-radius: 9px;"></div>
+              </div>
+              <div class="d-flex justify-between text-xs text-muted mt-2">
+                <span>Inizio Corso</span>
+                <span>Fase Aula (Docenti & Moduli)</span>
+                <span>Fase Stage (Tutor)</span>
+                <span>Completamento 100%</span>
+              </div>
+            </div>
+
+            <!-- Calendario Test di Fine Modulo -->
+            <div class="content-box mt-4" id="detailModuleTestsBox">
+              <div class="box-header d-flex justify-between items-center mb-2">
+                <div>
+                  <h3 class="d-flex items-center gap-2">📝 Verifiche & Test Finali di Modulo</h3>
+                  <p class="text-muted text-sm">Lezione conclusiva di ciascuna unità formativa con somministrazione del test finale di verifica.</p>
+                </div>
+                <span class="badge badge-purple" id="detailModuleTestsBadge">0 Test Programmati</span>
+              </div>
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Data Test</th>
+                      <th>Giorno</th>
+                      <th>Orario</th>
+                      <th>Modulo Didattico / UF</th>
+                      <th>Docente Incaricato</th>
+                      <th class="text-center">Ore</th>
+                      <th class="text-center">Stato</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbodyModuleTestsOverview">
+                    <tr>
+                      <td colspan="7" class="text-center text-muted py-3">Nessun test di modulo programmato</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SOTTO-PAGINA B: DOCENTI, TUTOR & GESTORE DOCUMENTALE DEL CORSO -->
+          <div id="courseSubpaneStaffDocs" class="course-subpane">
+            <!-- Sezione 1: Docenti e Moduli Didattici del Corso -->
+            <div class="content-box mb-4">
+              <div class="box-header d-flex justify-between items-center mb-2">
+                <div>
+                  <h3>👨‍🏫 Docenti Assegnati & Moduli Didattici</h3>
+                  <p class="text-muted text-sm">Elenco dei docenti incaricati, relative unità formative (UF), monte ore assegnato e fascia oraria.</p>
+                </div>
+                <span class="badge badge-info" id="detailDocentiCountBadge">0 Docenti</span>
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Docente</th>
+                      <th>Codice Fiscale</th>
+                      <th>Modulo Didattico / Unità Formativa</th>
+                      <th class="text-right">Ore Assegnate</th>
+                      <th class="text-center">Fascia Oraria</th>
+                      <th class="text-center">Data Test Finale Modulo</th>
+                      <th class="text-center">Azioni Rapide</th>
+                    </tr>
+                  </thead>
+                  <tbody id="detailTbodyDocenti">
+                    <tr>
+                      <td colspan="7" class="text-center py-3 text-muted">Caricamento docenti in corso...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Sezione 2: Tutor Referente del Corso -->
+            <div class="content-box mb-4">
+              <div class="box-header d-flex justify-between items-center mb-2">
+                <div>
+                  <h3>🎓 Tutor d'Aula & Coordinatore del Corso</h3>
+                  <p class="text-muted text-sm">Il tutor segue le lezioni d'aula e coordina la supervisione dello stage.</p>
+                </div>
+                <button class="btn btn-outline btn-sm" id="btnCourseDetailChangeTutor">🔄 Assegna Altro Tutor</button>
+              </div>
+              <div id="detailTutorCardBox" class="p-3 bg-subtle" style="border-radius: 8px;">
+                <div class="d-flex items-center gap-3">
+                  <div class="user-avatar" id="detailTutorAvatar">T</div>
+                  <div>
+                    <strong style="font-size: 1.1rem;" id="detailTutorFullName">Non assegnato</strong>
+                    <div class="text-muted text-sm" id="detailTutorEmail">Email: --</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sezione 2.5: CARICAMENTO REGISTRO PRESENZE TUTOR -->
+            <div class="content-box mb-4 attendance-import-box" style="border-left: 4px solid var(--accent-blue);">
+              <div class="box-header d-flex justify-between items-center mb-2">
+                <div>
+                  <h3>📥 Caricamento Foglio Presenze Tutor & Ore Svolte</h3>
+                  <p class="text-muted text-sm">Carica un documento (.xlsx, .xls, .csv) contenente le date e le ore svolte per questo corso. Il sistema verificherà la corrispondenza con il calendario ufficiale e ti permetterà di correggere eventuali incongruenze prima di salvare.</p>
+                </div>
+                <button class="btn btn-primary font-bold" id="btnOpenAttendanceModal">
+                  📂 Carica Registro Presenze (.xlsx / .csv)
+                </button>
+              </div>
+              <div class="d-flex items-center justify-between p-3 bg-subtle" style="border-radius: 8px; flex-wrap: wrap; gap: 1rem;">
+                <div class="d-flex items-center gap-3">
+                  <div style="font-size: 2.2rem; line-height: 1;">📋</div>
+                  <div>
+                    <strong style="font-size: 1rem;">Convalida Automatica & Allineamento al Calendario d'Aula</strong>
+                    <div class="text-xs text-muted mt-1">
+                      • Riconosce automaticamente date, ore e moduli da Timesheet (es. Allegato 14) o prospetti orari.<br>
+                      • Rileva discrepanze: se una data nel file non corrisponde al corso, puoi revisionarla o associarla alla lezione corretta con 1 clic prima del salvataggio.
+                    </div>
+                  </div>
+                </div>
+                <button class="btn btn-outline-primary font-bold" id="btnOpenAttendanceModalSecondary">
+                  ⚡ Avvia Caricamento Presenze
+                </button>
+              </div>
+            </div>
+
+            <!-- Sezione 3: GESTORE DOCUMENTALE DEDICATO DEL CORSO -->
+            <div class="content-box">
+              <div class="box-header d-flex justify-between items-center mb-3">
+                <div>
+                  <h3>📁 Gestore Documentale del Corso</h3>
+                  <p class="text-muted text-sm">Archivio file, contratti di docenza, convenzioni stage, fogli firma e attestati specifici di questo corso.</p>
+                </div>
+                <button class="btn btn-primary" id="btnCourseDetailUploadDoc">
+                  ➕ Carica Documento per questo Corso
+                </button>
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 50px;">Tipo</th>
+                      <th>Titolo File</th>
+                      <th>Categoria</th>
+                      <th>Dipendente / Docente</th>
+                      <th>Dimensione</th>
+                      <th>Data Caricamento</th>
+                      <th class="text-center" style="width: 140px;">Azioni</th>
+                    </tr>
+                  </thead>
+                  <tbody id="detailTbodyDocuments">
+                    <tr>
+                      <td colspan="7" class="text-center py-4 text-muted">Nessun documento caricato per questo corso.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SOTTO-PAGINA C: CALENDARIO & VARIAZIONE DATE (PER DOCENTE / MODULO) -->
+          <div id="courseSubpaneCalendar" class="course-subpane">
+            <!-- Conflict Alert for This Course -->
+            <div class="conflict-alert-banner mb-3" id="courseDetailConflictBanner" style="display: none;">
+              <div class="conflict-banner-header">
+                <div class="d-flex items-center gap-2">
+                  <span class="conflict-warning-icon">⚠️</span>
+                  <div>
+                    <strong class="conflict-title">Attenzione: Rilevate Sovrapposizioni Docente in questo Corso!</strong>
+                    <p class="conflict-subtitle text-sm" id="courseDetailConflictDesc">
+                      Uno o più docenti risultano pianificati contemporaneamente in altri corsi negli stessi orari.
+                    </p>
+                  </div>
+                </div>
+                <span class="badge badge-danger-pill" id="courseDetailConflictCount">0 Conflitti</span>
+              </div>
+              <div class="conflict-list-items" id="courseDetailConflictList"></div>
+            </div>
+
+            <!-- Actions Bar -->
+            <div class="calendar-controls-bar d-flex justify-between items-center flex-wrap gap-2 mb-3">
+              <div class="d-flex items-center gap-2 flex-wrap">
+                <a href="/api/course-calendars/template" class="btn btn-outline btn-sm" download="Modello_Calendario_Corso.xlsx" title="Scarica il modello Excel vuoto">
+                  📥 Scarica Modello (.xlsx)
+                </a>
+                <button class="btn btn-primary btn-sm admin-only-btn" id="btnCourseDetailImportFile">
+                  📤 Carica / Sostituisci Calendario da File
+                </button>
+                <button class="btn btn-purple btn-sm admin-only-btn" id="btnCourseDetailAddSession">
+                  ➕ Nuova Lezione / Giornata
+                </button>
+                <button class="btn btn-success btn-sm font-bold" id="btnCourseDetailSyncTutorEntries" title="Sincronizza automaticamente tutte le giornate di lezione svolte nel tuo registro ore">
+                  ⚡ Sincronizza Presenze Tutor (<span id="courseDetailPastSessionsBadge">0</span> lezioni)
+                </button>
+              </div>
+
+              <!-- Interactive Filters: Docente, Modulo, Fase -->
+              <div class="d-flex items-center gap-2 flex-wrap">
+                <div class="d-flex items-center gap-1">
+                  <label for="courseSubFilterDocente" class="text-xs font-bold text-muted">Docente:</label>
+                  <select id="courseSubFilterDocente" class="form-select form-select-sm" style="max-width: 170px;">
+                    <option value="all">Tutti i Docenti</option>
+                  </select>
+                </div>
+
+                <div class="d-flex items-center gap-1">
+                  <label for="courseSubFilterModulo" class="text-xs font-bold text-muted">Modulo:</label>
+                  <select id="courseSubFilterModulo" class="form-select form-select-sm" style="max-width: 170px;">
+                    <option value="all">Tutti i Moduli</option>
+                  </select>
+                </div>
+
+                <div class="d-flex items-center gap-1">
+                  <label for="courseSubFilterPhase" class="text-xs font-bold text-muted">Fase:</label>
+                  <select id="courseSubFilterPhase" class="form-select form-select-sm">
+                    <option value="all">Tutte le Fasi</option>
+                    <option value="aula">Solo Aula</option>
+                    <option value="stage">Solo Stage</option>
+                    <option value="tests">📝 Solo Test di Modulo</option>
+                    <option value="conflicts">⚠️ Solo Conflitti</option>
+                  </select>
+                </div>
+
+                <input type="text" id="courseSubSearchInput" class="form-input form-input-sm" placeholder="🔍 Cerca data..." style="width: 140px;">
+              </div>
+            </div>
+
+            <!-- Sessions Table for this course -->
+            <div class="content-box">
+              <div class="box-header d-flex justify-between items-center mb-3">
+                <div>
+                  <h3>🗓️ Giornate di Lezione & Variazione del Calendario</h3>
+                  <p class="text-muted text-sm">
+                    Modifica una singola data partendo dal docente o dal modulo didattico, oppure rinvia o annulla la lezione.
+                  </p>
+                </div>
+                <span class="text-sm text-muted" id="courseDetailSessionsCount">Mostrate: 0 sessioni</span>
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 125px;">Data & Giorno</th>
+                      <th style="width: 90px;">Fase</th>
+                      <th style="width: 110px;">Orario</th>
+                      <th>Docente</th>
+                      <th>Modulo / Argomento</th>
+                      <th>Tutor Assegnato</th>
+                      <th style="width: 110px;">Stato</th>
+                      <th style="width: 140px;">Sovrapposizioni</th>
+                      <th style="width: 160px;" class="text-center admin-col">Azioni Variazione</th>
+                    </tr>
+                  </thead>
+                  <tbody id="courseDetailSessionsTbody">
+                    <tr>
+                      <td colspan="9" class="text-center py-4 text-muted">Caricamento sessioni del calendario...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- TAB 6: GESTIONE TUTOR & PROFILI (ADMIN) -->
+      <!-- ============================================================ -->
+      <section id="tab-employees" class="tab-pane">
+        <div class="section-intro-bar">
+          <div>
+            <h2>👥 Profili Utenti & Gestione Ruoli (Pannello Amministratore)</h2>
+            <p class="text-muted">Gestisci i collaboratori, assegna o modifica i ruoli (Admin, Tutor, Doppio Ruolo) ed elimina account con backup di sicurezza e ripristino entro 3 giorni.</p>
+          </div>
+          <div class="d-flex items-center gap-2">
+            <button class="btn btn-outline" id="btnAdminDownloadBackup" title="Scarica un archivio ZIP con l'intero sito e il database">
+              💾 Backup Completo (.zip)
+            </button>
+            <button class="btn btn-outline" id="btnToggleTrashView">
+              🗑️ Cestino & Ripristino (<span id="trashCountBadge">0</span>)
+            </button>
+            <button class="btn btn-primary" id="btnAddNewEmployee">➕ Registra Nuovo Profilo</button>
+          </div>
+        </div>
+
+        <!-- Cestino Profili Eliminati (Backup di 3 giorni) -->
+        <div id="trashContainer" class="content-box mb-4" style="display: none; border-left: 4px solid var(--warning);">
+          <div class="d-flex justify-between items-center mb-3">
+            <div>
+              <h3 style="margin: 0; font-size: 1.15rem;">🗑️ Cestino Profili Eliminati (Backup di 3 Giorni)</h3>
+              <p class="text-xs text-muted mb-0">I profili rimangono conservati per 72 ore con le loro ore e i documenti intatti. Puoi ripristinarli con un clic prima della scadenza.</p>
+            </div>
+            <button class="btn btn-sm btn-outline" id="btnCloseTrashView">Chiudi Cestino ✕</button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nome e Cognome</th>
+                  <th>Email</th>
+                  <th>Ruolo</th>
+                  <th>Data Eliminazione</th>
+                  <th>Tempo Rimanente Ripristino</th>
+                  <th class="text-center">Azione</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyTrashEmployees">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="employees-card-grid" id="employeesGrid"></div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- TAB: GESTIONE DOCUMENTI & FILE DIPENDENTI (REPOSITORY) -->
+      <!-- ============================================================ -->
+      <section id="tab-documents" class="tab-pane">
+        <div class="section-intro-bar">
+          <div>
+            <h2>📁 Archivio Documenti, Contratti & Fogli Firma</h2>
+            <p class="text-muted">
+              Archivio centralizzato per caricare e consultare i file di ciascun dipendente: fogli presenze firmati, contratti di docenza, convenzioni stage, attestati e prospetti ore.
+            </p>
+          </div>
+          <div class="d-flex items-center gap-2">
+            <button class="btn btn-outline" id="btnRefreshDocuments">🔄 Aggiorna Archivio</button>
+            <button class="btn btn-primary" id="btnOpenUploadDocModal">➕ Carica Documento / File</button>
+          </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="calendar-controls-bar">
+          <div class="d-flex items-center gap-2" style="min-width: 200px;">
+            <label for="filterDocEmployee"><strong>Dipendente:</strong></label>
+            <select id="filterDocEmployee" class="form-select form-select-sm">
+              <option value="all">Tutti i dipendenti</option>
+            </select>
+          </div>
+
+          <div class="d-flex items-center gap-2" style="min-width: 200px;">
+            <label for="filterDocCourse"><strong>Corso:</strong></label>
+            <select id="filterDocCourse" class="form-select form-select-sm">
+              <option value="all">Tutti i corsi</option>
+            </select>
+          </div>
+
+          <div class="d-flex items-center gap-2">
+            <label for="filterDocCategory"><strong>Categoria:</strong></label>
+            <select id="filterDocCategory" class="form-select form-select-sm">
+              <option value="all">Tutte le categorie</option>
+              <option value="Fogli Presenza & Firme">Fogli Presenza & Firme</option>
+              <option value="Contratti & Nomine">Contratti & Nomine</option>
+              <option value="Prospetti Ore & Buste">Prospetti Ore & Buste</option>
+              <option value="Attestati & Certificati">Attestati & Certificati</option>
+              <option value="Materiale Didattico">Materiale Didattico</option>
+              <option value="Generale">Generale / Altro</option>
+            </select>
+          </div>
+
+          <div class="calendar-search-group">
+            <input type="text" id="inputSearchDocs" class="form-input form-input-sm" placeholder="🔍 Cerca file o titolo...">
+          </div>
+        </div>
+
+        <!-- Documents Table -->
+        <div class="content-box">
+          <div class="box-header d-flex justify-between items-center mb-3">
+            <div>
+              <h3>📄 Elenco File & Documenti Archiviati</h3>
+              <p class="text-muted text-sm" id="docsCountLabel">Caricamento documenti in corso...</p>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">Tipo</th>
+                  <th>Titolo Documento & File</th>
+                  <th>Dipendente</th>
+                  <th>Corso Collegato</th>
+                  <th>Categoria</th>
+                  <th>Dimensione</th>
+                  <th>Data Caricamento</th>
+                  <th class="text-center" style="width: 140px;">Azioni</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyDocuments">
+                <tr>
+                  <td colspan="8" class="text-center py-4 text-muted">Nessun documento caricato finora.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- TAB 7: IMPORT / EXPORT & BACKUP -->
+      <!-- ============================================================ -->
+      <section id="tab-tools" class="tab-pane">
+        <div class="section-intro-bar">
+          <div>
+            <h2>🔄 Strumenti di Sincronizzazione, Import / Export & Backup</h2>
+            <p class="text-muted">Interscambia i dati con Microsoft Excel (.xlsx), esporta in CSV o sincronizza il calendario.</p>
+          </div>
+        </div>
+
+        <div class="tools-grid">
+          <div class="content-box tool-box">
+            <div class="tool-icon">📊</div>
+            <h3>Esporta in Microsoft Excel (.xlsx)</h3>
+            <p class="text-muted">
+              Genera il documento Excel completo a 3 fogli con:
+              <em>"Riepilogo & Dashboard"</em>, <em>"Registro Movimenti"</em> con celle bicolore, e <em>"Vista Calendario Mensile"</em> a blocchi con tutte le formule.
+            </p>
+            <button class="btn btn-success mt-auto" id="btnToolExportExcel">
+              ⬇️ Scarica File Excel (.xlsx)
+            </button>
+          </div>
+
+          <div class="content-box tool-box">
+            <div class="tool-icon">📥</div>
+            <h3>Importa Calendario da Excel (.xlsx)</h3>
+            <p class="text-muted">
+              Carica un file Excel con le lezioni o le registrazioni (es. <code>File banca del tempo Andrea.xlsx</code> o calendari di corso) per importarle nel profilo attivo.
+            </p>
+            <div class="file-dropzone" id="dropzoneExcel">
+              <input type="file" id="inputFileExcel" accept=".xlsx" class="hidden-file-input">
+              <div class="dropzone-text">
+                📁 Trascina qui il file Excel o <span class="text-primary underline">sfoglia</span>
+              </div>
+            </div>
+            <button class="btn btn-primary mt-2" id="btnConfirmImportExcel" disabled>
+              ⚡ Avvia Importazione Excel
+            </button>
+          </div>
+
+          <div class="content-box tool-box">
+            <div class="tool-icon">📄</div>
+            <h3>Esporta in Formato CSV</h3>
+            <p class="text-muted">
+              Esporta lo storico in un file CSV universale compatibile con Google Fogli, Numbers, LibreOffice o database esterni.
+            </p>
+            <button class="btn btn-outline mt-auto" id="btnToolExportCSV">
+              ⬇️ Scarica CSV (.csv)
+            </button>
+          </div>
+
+          <div class="content-box tool-box" style="border: 2px solid var(--primary-light);">
+            <div class="tool-icon">💾</div>
+            <h3>Backup Completo del Sito (.zip)</h3>
+            <p class="text-muted">
+              Scarica un archivio ZIP contenente l'intero sistema: <strong>codice sorgente</strong>, <strong>interfaccia web</strong>, snapshot consistente del <strong>database SQLite</strong> e tutti i <strong>documenti</strong> caricati, con istruzioni di ripristino.
+            </p>
+            <button class="btn btn-purple mt-auto" id="btnToolDownloadBackup">
+              ⬇️ Scarica Backup Completo (.zip)
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: REGISTRA / MODIFICA GIORNATA & LEZIONE -->
+    <!-- ============================================================ -->
+    <div class="modal-backdrop" id="entryModalBackdrop">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <h3 id="entryModalTitle">➕ Registra Giornata di Lavoro / Lezione</h3>
+          <button class="modal-close-btn" id="btnCloseEntryModal">&times;</button>
+        </div>
+
+        <form id="formEntry">
+          <input type="hidden" id="entryId" value="">
+
+          <!-- Segmented Mode Switch: Lavoro in Sede vs Presenza Corso -->
+          <div class="entry-type-segmented mb-3">
+            <button type="button" class="entry-type-btn active" id="btnEntryModeSede">
+              <span>🏢</span> Lavoro in Sede / Ufficio
+            </button>
+            <button type="button" class="entry-type-btn" id="btnEntryModeCourse">
+              <span>🎓</span> Presenza Corso / Lezione
+            </button>
+          </div>
+          <div class="alert alert-info py-2 px-3 mb-3 text-xs" id="entryModeHelperNotice">
+            🏢 <strong>Lavoro in Sede:</strong> Registra la tua giornata ordinaria in ufficio/sede (segreteria didattica, riunioni, preparazione). Gli straordinari rispetto all'orario contrattuale andranno nella Banca Ore.
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="entryEmployee">Dipendente / Tutor:</label>
+              <select id="entryEmployee" class="form-select" required></select>
+            </div>
+
+            <div class="form-group col-6">
+              <label for="entryCourse">Corso di Formazione:</label>
+              <select id="entryCourse" class="form-select">
+                <option value="">Nessun corso (Lavoro ordinario d'ufficio)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="entryDate">Data della Giornata:</label>
+              <input type="date" id="entryDate" class="form-input" required>
+            </div>
+
+            <div class="form-group col-6">
+              <label for="entryExitDate">Data d'Uscita (Opzionale):</label>
+              <input type="date" id="entryExitDate" class="form-input" title="Specifica la data d'uscita se diversa dalla data d'inizio">
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="entryActivityType">Tipo Attività:</label>
+            <select id="entryActivityType" class="form-select">
+              <option value="Tutoraggio d'aula">Tutoraggio d'aula</option>
+              <option value="Stage / Tirocinio">Stage / Tirocinio</option>
+              <option value="Lavoro Ordinario">Lavoro Ordinario</option>
+              <option value="Docenza">Docenza</option>
+              <option value="Permesso">Permesso / Recupero</option>
+            </select>
+          </div>
+
+          <!-- FASCE ORARIE GIORNALIERE: UFFICIO, PAUSA PRANZO & CORSO -->
+          <div class="p-3 mb-3" style="background: var(--bg-card); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            
+            <!-- 1. Fascia Orario Sede / Ufficio -->
+            <div class="mb-3">
+              <div class="d-flex justify-between items-center mb-1">
+                <span class="font-bold text-sm" style="color: var(--navy);">🏢 Orario Sede / Ufficio da Contratto:</span>
+                <span class="text-xs text-muted" id="lblContractOfficeHint">Default: 09:00 - 13:00</span>
+              </div>
+              <div class="form-row">
+                <div class="col-6">
+                  <label for="entryOfficeStart" class="text-xs text-muted">Orario Entrata in sede:</label>
+                  <input type="time" id="entryOfficeStart" class="form-input" value="09:00">
+                </div>
+                <div class="col-6">
+                  <label for="entryOfficeEnd" class="text-xs text-muted">Termine orario d'ufficio / Uscita:</label>
+                  <input type="time" id="entryOfficeEnd" class="form-input" value="13:00">
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Pausa Pranzo -->
+            <div class="mb-3 pt-2" style="border-top: 1px dashed var(--border-color);">
+              <span class="font-bold text-sm d-block mb-1" style="color: #92400e;">🥪 Pausa Pranzo (se effettuata):</span>
+              <div class="form-row">
+                <div class="col-6">
+                  <label for="entryLunchStart" class="text-xs text-muted">Inizio pausa pranzo:</label>
+                  <input type="time" id="entryLunchStart" class="form-input" value="" placeholder="--:--">
+                </div>
+                <div class="col-6">
+                  <label for="entryLunchEnd" class="text-xs text-muted">Fine pausa pranzo:</label>
+                  <input type="time" id="entryLunchEnd" class="form-input" value="" placeholder="--:--">
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Fascia Corso / Tutoraggio -->
+            <div class="pt-2" id="entryCourseSection" style="border-top: 1px dashed var(--border-color);">
+              <div class="d-flex justify-between items-center mb-1 flex-wrap gap-1">
+                <span class="font-bold text-sm" style="color: #6b21a8;">🎓 Orario Corso di Formazione:</span>
+                <label class="text-xs d-flex items-center gap-1 font-bold" style="cursor: pointer; margin: 0; color: #15803d;">
+                  <input type="checkbox" id="entryIsIntegrated" value="1" style="width: 16px; height: 16px;">
+                  <span>🔗 Integra con ore contrattuali</span>
+                </label>
+              </div>
+              <div class="form-row">
+                <div class="col-6">
+                  <label for="entryCourseStart" class="text-xs text-muted">Inizio orario corso:</label>
+                  <input type="time" id="entryCourseStart" class="form-input" value="" placeholder="Es. 09:00">
+                </div>
+                <div class="col-6">
+                  <label for="entryCourseEnd" class="text-xs text-muted">Termine orario del corso:</label>
+                  <input type="time" id="entryCourseEnd" class="form-input" value="" placeholder="Es. 13:00">
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- CARD CALCOLO AUTOMATICO ORE PRODOTTE IN OGNI FASCIA -->
+          <div class="content-box p-3 mb-3" id="entryBreakdownCard" style="background: var(--bg-subtle); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <div class="d-flex justify-between items-center mb-2">
+              <span class="font-bold text-sm" style="color: var(--navy);">🧮 Calcolo Automatico Ore per Fascia:</span>
+              <span class="badge badge-info" id="badgeBreakdownIntegrationStatus">🔗 Integrato con Ufficio</span>
+            </div>
+            <div class="d-flex justify-between items-center gap-2 flex-wrap text-xs mb-2">
+              <div>🏢 Ufficio: <strong id="lblOfficeHours">4.0 h</strong></div>
+              <div>🎓 Corso: <strong id="lblCourseHours">0.0 h</strong></div>
+              <div>🥪 Pausa: <strong id="lblLunchHours">0.0 h</strong></div>
+              <div>🔗 Coincidenti: <strong id="lblOverlapHours">0.0 h</strong></div>
+            </div>
+            <div class="p-2 mb-2" id="breakdownSummaryNotice" style="background: var(--bg-card); border-radius: 6px; font-size: 0.82rem; border-left: 3px solid var(--accent-blue);">
+              Orario d'ufficio ordinario: 4.0 ore conteggiate.
+            </div>
+            <div class="d-flex justify-between items-center">
+              <div><span class="text-muted text-xs">Totale Ore Lavorate:</span> <strong class="text-primary text-base ml-1" id="lblTotalWorkedHours">4.0 h</strong></div>
+              <div id="lblVarianceBadge" class="badge badge-gray font-bold">Puntuale (0.0 h)</div>
+            </div>
+            <div id="breakdownConflictAlert" class="alert alert-warning py-1 px-2 mt-2 text-xs" style="display: none;"></div>
+          </div>
+
+          <!-- Hidden Compatibility Fields for Legacy Time Tracking API -->
+          <input type="hidden" id="entrySchedStart" value="09:00">
+          <input type="hidden" id="entrySchedEnd" value="13:00">
+          <input type="hidden" id="entryActStart" value="09:00">
+          <input type="hidden" id="entryActEnd" value="13:00">
+          <span id="hintSchedHours" style="display:none;"></span>
+          <span id="hintActHours" style="display:none;"></span>
+          <div id="variancePreviewBar" style="display:none;"><span id="varianceText"></span></div>
+
+          <!-- Direct Hours Override (Optional) -->
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="entryHours">Ore Scostamento / Registrate:</label>
+              <div class="hours-input-wrapper">
+                <input type="number" id="entryHours" class="form-input" min="0" max="24" step="0.5" required placeholder="Es. 1.0">
+                <span class="hours-suffix">ore</span>
+              </div>
+            </div>
+
+            <div class="form-group col-6">
+              <label for="entryType">Classificazione Saldo:</label>
+              <select id="entryType" class="form-select" required>
+                <option value="maturata">🟢 Maturata / Uscita posticipata (+)</option>
+                <option value="utilizzata">🟡 Utilizzata / Uscita anticipata / Debito (-)</option>
+                <option value="ordinaria">🔵 Ordinaria / Senza scostamento</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="entryCausale">Causale / Argomento Lezione:</label>
+            <input type="text" id="entryCausale" class="form-input" placeholder="Es. Uscita posticipata per supporto allievi, Lezione Modulo 2, Stage...">
+          </div>
+
+          <div class="form-group">
+            <label for="entryNote">Note aggiuntive (opzionali):</label>
+            <textarea id="entryNote" class="form-textarea" rows="2" placeholder="Aula, docente presente, motivazione uscita anticipata..."></textarea>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" id="btnCancelEntryModal">Annulla</button>
+            <button type="submit" class="btn btn-primary" id="btnSaveEntry">Salva Giornata</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: AGGIUNGI / MODIFICA CORSO (MONTE ORE) -->
+    <!-- ============================================================ -->
+    <div class="modal-backdrop" id="courseModalBackdrop">
+      <div class="modal-card">
+        <div class="modal-header header-purple">
+          <h3 id="courseModalTitle">📚 Nuovo Corso di Tutoraggio</h3>
+          <button class="modal-close-btn" id="btnCloseCourseModal">&times;</button>
+        </div>
+
+        <form id="formCourse">
+          <input type="hidden" id="editCourseId" value="">
+
+          <div class="form-group">
+            <label for="courseName">Nome del Corso:</label>
+            <input type="text" id="courseName" class="form-input" required placeholder="Es. Avviso 6 Unsic ED 2274_1 Messina">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="courseCode">Codice / Edizione:</label>
+              <input type="text" id="courseCode" class="form-input" placeholder="Es. CS2083-ED5991">
+            </div>
+
+            <div class="form-group col-6">
+              <label for="courseTotalHours">Monte Ore Stabilito:</label>
+              <div class="hours-input-wrapper">
+                <input type="number" id="courseTotalHours" class="form-input" min="1" step="1" value="200" required>
+                <span class="hours-suffix">ore totali</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="courseEmployeeId">Tutor d'Aula Assegnato (Facoltativo):</label>
+              <select id="courseEmployeeId" class="form-select"></select>
+            </div>
+
+            <div class="form-group col-6">
+              <label for="courseDocente">Docente / Docenti Incaricati:</label>
+              <input type="text" id="courseDocente" class="form-input" list="datalistDocenti" placeholder="Es. Prof.ssa Maria Conti, Ing. Ferri">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="courseColor">Colore Etichetta nel Calendario:</label>
+              <input type="color" id="courseColor" class="form-color-picker" value="#2563EB">
+            </div>
+
+            <div class="form-group col-6">
+              <label for="courseStatus">Stato del Corso:</label>
+              <select id="courseStatus" class="form-select">
+                <option value="Attivo">Attivo</option>
+                <option value="Pianificato">Pianificato</option>
+                <option value="Concluso">Concluso</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="courseNotes">Note sul Corso:</label>
+            <textarea id="courseNotes" class="form-textarea" rows="2" placeholder="Dettagli bando, sede, referente d'aula..."></textarea>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="d-flex items-center gap-2 cursor-pointer" style="font-weight: 600; background: var(--bg-subtle); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+              <input type="checkbox" id="courseIntegratesWithContract" value="1" style="width: 18px; height: 18px; cursor: pointer;">
+              <span>🔗 <strong>Integra con ore contrattuali lavorative d'ufficio</strong></span>
+            </label>
+            <small class="text-muted d-block mt-1 pl-1">
+              Se attivo, le ore svolte su questo corso coincidenti con l'orario d'ufficio del tutor non generano conflitti di sovrapposizione e non vengono conteggiate due volte.
+            </small>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" id="btnCancelCourseModal">Annulla</button>
+            <button type="submit" class="btn btn-purple" id="btnSaveCourse">Salva Corso</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: CAMBIA PROFILO O REGISTRA NUOVO TUTOR (ONBOARDING) -->
+    <!-- ============================================================ -->
+    <div class="modal-backdrop" id="switchProfileModalBackdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>👤 Seleziona Profilo o Registrati al Primo Accesso</h3>
+          <button class="modal-close-btn" id="btnCloseSwitchModal">&times;</button>
+        </div>
+
+        <div class="profile-switch-body">
+          <p class="text-muted text-sm mb-3">
+            Scegli il tuo profilo per accedere alla tua area personale, oppure crea un nuovo profilo Tutor se è il tuo primo accesso.
+          </p>
+
+          <!-- List of Existing Profiles -->
+          <div class="profiles-list" id="profilesListContainer"></div>
+
+          <hr class="my-3">
+
+          <div class="d-flex justify-between items-center">
+            <span class="text-sm font-bold">Primo accesso di un nuovo collaboratore?</span>
+            <button class="btn btn-primary btn-sm" id="btnOpenRegisterTutorModal">
+              ➕ Registrati come Nuovo Tutor
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: REGISTRA NUOVO TUTOR / COLLABORATORE -->
+    <!-- ============================================================ -->
+    <div class="modal-backdrop" id="registerTutorModalBackdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>👥 Registrazione Nuovo Profilo Utente</h3>
+          <button class="modal-close-btn" id="btnCloseRegisterTutorModal">&times;</button>
+        </div>
+
+        <form id="formRegisterTutor">
+          <div class="form-group mb-3">
+            <label for="regTutorName">Nome e Cognome: <span class="text-danger">*</span></label>
+            <input type="text" id="regTutorName" class="form-input" required placeholder="Es. Marco Bianchi">
+          </div>
+
+          <div class="form-row mb-3">
+            <div class="form-group col-6">
+              <label for="regTutorEmail">Email (per login e comunicazioni): <span class="text-danger">*</span></label>
+              <input type="email" id="regTutorEmail" class="form-input" required placeholder="marco@esempio.it">
+            </div>
+
+            <div class="form-group col-6">
+              <label for="regTutorPassword">Password Iniziale (min. 6 car.): <span class="text-danger">*</span></label>
+              <input type="password" id="regTutorPassword" class="form-input" required minlength="6" placeholder="Password temporanea">
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="regTutorRole">Ruolo del Profilo: <span class="text-danger">*</span></label>
+            <select id="regTutorRole" class="form-select font-bold">
+              <option value="tutor" selected>🎓 Tutor d'aula</option>
+              <option value="admin">👑 Amministratore (Admin)</option>
+            </select>
+          </div>
+
+          <div id="regTutorDoubleRoleBox" class="checkbox-box p-3 mb-3" style="display: none; background: var(--bg-secondary); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <label class="d-flex items-center gap-2" style="cursor: pointer; font-size: 0.95rem;">
+              <input type="checkbox" id="regTutorIsTutor" checked style="width: 18px; height: 18px; accent-color: var(--primary);">
+              <span>
+                <strong>Assegna anche il ruolo di Tutor (Doppio Ruolo: Admin + Tutor)</strong>
+                <small class="text-muted d-block" style="font-size: 0.8rem; margin-top: 2px;">
+                  Abilita la gestione dell'orario di lavoro e monte ore personale oltre alle funzioni di amministrazione.
+                </small>
+              </span>
+            </label>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" id="btnCancelRegisterTutorModal">Annulla</button>
+            <button type="submit" class="btn btn-primary" id="btnConfirmRegisterTutor">Salva & Crea Profilo</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: CREA / MODIFICA CALENDARIO CORSO -->
+    <!-- ============================================================ -->
+    <div class="modal-backdrop" id="modalCourseCalendarBackdrop">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <h3 id="courseCalendarModalTitle">🏛️ Nuovo Calendario Corso Ufficiale</h3>
+          <button class="modal-close-btn" id="btnCloseCourseCalendarModal">&times;</button>
+        </div>
+
+        <form id="formCourseCalendar">
+          <input type="hidden" id="courseCalendarId" value="">
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="calModalCourseId">Corso di Riferimento:</label>
+              <select id="calModalCourseId" class="form-select" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
+            <div class="form-group col-6">
+              <label for="calModalTitle">Titolo / Identificativo Calendario:</label>
+              <input type="text" id="calModalTitle" class="form-input" required placeholder="Es. Calendario Ufficiale Avviso 6 Messina">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="calModalStartDate">Data Inizio Corso (Aula):</label>
+              <input type="date" id="calModalStartDate" class="form-input" required>
+            </div>
+
+            <div class="form-group col-6">
+              <label for="calModalExpectedEndDate">Data Fine Ipotetica Corso:</label>
+              <input type="date" id="calModalExpectedEndDate" class="form-input" required>
+            </div>
+          </div>
+
+          <div class="calendar-section-divider">
+            <strong>💼 Fase di Stage (Post-Aula)</strong>
+            <p class="text-muted text-sm">Lo stage ha inizio al termine delle lezioni d'aula, è gestito dal Tutor e non prevede né docenti né moduli didattici.</p>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-4">
+              <label for="calModalStageStartDate">Data Inizio Stage:</label>
+              <input type="date" id="calModalStageStartDate" class="form-input">
+            </div>
+
+            <div class="form-group col-4">
+              <label for="calModalStageEndDate">Data Fine Stage:</label>
+              <input type="date" id="calModalStageEndDate" class="form-input">
+            </div>
+
+            <div class="form-group col-4">
+              <label for="calModalStageTutorId">Tutor Referente Stage:</label>
+              <select id="calModalStageTutorId" class="form-select">
+                <option value="">-- Seleziona Tutor --</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="calModalStatus">Stato del Calendario:</label>
+              <select id="calModalStatus" class="form-select">
+                <option value="In Corso">In Corso</option>
+                <option value="Pianificato">Pianificato</option>
+                <option value="Concluso">Concluso</option>
+              </select>
+            </div>
+
+            <div class="form-group col-6">
+              <label for="calModalNotes">Note Organizzative:</label>
+              <input type="text" id="calModalNotes" class="form-input" placeholder="Sede, referente aula, convenzione stage...">
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" id="btnCancelCourseCalendarModal">Annulla</button>
+            <button type="submit" class="btn btn-purple" id="btnSaveCourseCalendar">Salva Calendario</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: AGGIUNGI / MODIFICA SESSIONE / GIORNATA LEZIONE -->
+    <!-- ============================================================ -->
+    <div class="modal-backdrop" id="modalCalendarSessionBackdrop">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <h3 id="sessionModalTitle">➕ Aggiungi Giornata / Sessione al Calendario</h3>
+          <button class="modal-close-btn" id="btnCloseSessionModal">&times;</button>
+        </div>
+
+        <form id="formCalendarSession">
+          <input type="hidden" id="sessModalId" value="">
+
+          <div class="form-group">
+            <label for="sessModalCalId">Calendario Corso di Destinazione:</label>
+            <select id="sessModalCalId" class="form-select" required></select>
+          </div>
+
+          <!-- Phase Selector Buttons -->
+          <div class="form-group">
+            <label><strong>Fase del Corso:</strong></label>
+            <div class="phase-selector-tabs">
+              <label class="phase-radio-label active" id="labelPhaseAula">
+                <input type="radio" name="sessPhaseRadio" id="radioPhaseAula" value="aula" checked>
+                🎓 <strong>Fase Aula</strong> (con Docente e Modulo Didattico)
+              </label>
+              <label class="phase-radio-label" id="labelPhaseStage">
+                <input type="radio" name="sessPhaseRadio" id="radioPhaseStage" value="stage">
+                💼 <strong>Fase Stage</strong> (senza Docente né Modulo, con Tutor)
+              </label>
+            </div>
+          </div>
+
+          <!-- Date and Hours -->
+          <div class="form-row">
+            <div class="form-group col-4">
+              <label for="sessModalDate">Data della Sessione:</label>
+              <input type="date" id="sessModalDate" class="form-input" required>
+            </div>
+
+            <div class="form-group col-3">
+              <label for="sessModalStartTime">Orario Inizio:</label>
+              <input type="time" id="sessModalStartTime" class="form-input" value="08:30" required>
+            </div>
+
+            <div class="form-group col-3">
+              <label for="sessModalEndTime">Orario Fine:</label>
+              <input type="time" id="sessModalEndTime" class="form-input" value="13:30" required>
+            </div>
+
+            <div class="form-group col-2">
+              <label for="sessModalHours">Ore Calcolate:</label>
+              <input type="number" id="sessModalHours" class="form-input bg-disabled" step="0.25" value="5.0" readonly>
+            </div>
+          </div>
+
+          <!-- Phase Aula Fields (Docente & Modulo) -->
+          <div id="sessAulaFields" class="phase-fields-panel">
+            <div class="form-row">
+              <div class="form-group col-6">
+                <label for="sessModalDocente">Docente Assegnato:</label>
+                <input type="text" id="sessModalDocente" class="form-input" list="datalistDocenti" placeholder="Es. Prof.ssa Maria Conti">
+                <datalist id="datalistDocenti"></datalist>
+                <small class="text-muted">Il sistema verifica automaticamente eventuali sovrapposizioni orarie in altri corsi.</small>
+              </div>
+
+              <div class="form-group col-6">
+                <label for="sessModalModulo">Modulo Didattico:</label>
+                <input type="text" id="sessModalModulo" class="form-input" placeholder="Es. Modulo 1: Normativa & Sicurezza">
+              </div>
+            </div>
+
+            <div class="form-group mt-2">
+              <label class="d-flex items-center gap-2 cursor-pointer font-bold" style="color: #6366f1;">
+                <input type="checkbox" id="sessModalIsModuleTest" style="width: 18px; height: 18px; cursor: pointer;">
+                <span>📝 Ultima Lezione del Modulo: Test di Verifica Finale</span>
+              </label>
+              <small class="text-muted d-block mt-1">Contrassegna questa lezione come sessione di chiusura del modulo didattico con somministrazione del test finale.</small>
+            </div>
+          </div>
+
+          <!-- Phase Stage Fields (Tutor, No Docente, No Modulo) -->
+          <div id="sessStageFields" class="phase-fields-panel" style="display: none;">
+            <div class="alert-box alert-info mb-2">
+              ℹ️ <strong>Fase Stage:</strong> non sono previsti docenti esterni né moduli didattici. La supervisione delle attività è a carico del Tutor d'aula.
+            </div>
+            <div class="form-group">
+              <label for="sessModalTutorId">Tutor Incaricato per la Giornata:</label>
+              <select id="sessModalTutorId" class="form-select">
+                <option value="">-- Seleziona Tutor --</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Live Conflict Alert Notice in Modal -->
+          <div id="sessModalConflictAlert" class="alert-box alert-danger mt-2" style="display: none;">
+            <div class="d-flex items-center gap-2">
+              <span style="font-size: 1.3rem;">⚠️</span>
+              <div>
+                <strong>ATTENZIONE: Sovrapposizione Docente Rilevata!</strong>
+                <p id="sessModalConflictText" class="text-sm mt-1 mb-0"></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group mt-2">
+            <label for="sessModalNotes">Note / Note d'aula:</label>
+            <input type="text" id="sessModalNotes" class="form-input" placeholder="Es. Lezione in laboratorio informatica, materiale fornito...">
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" id="btnCancelSessionModal">Annulla</button>
+            <button type="submit" class="btn btn-primary" id="btnSaveSession">Salva Sessione</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: RINVIA / ANNULLA / MODIFICA STATO LEZIONE -->
+    <!-- ============================================================ -->
+    <div class="modal-backdrop" id="modalRescheduleSessionBackdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="reschedModalTitle">🔄 Gestione Stato Lezione (Rinvia o Annulla)</h3>
+          <button class="modal-close-btn" id="btnCloseRescheduleModal">&times;</button>
+        </div>
+
+        <form id="formRescheduleSession">
+          <input type="hidden" id="reschedSessionId" value="">
+
+          <!-- Summary Preview -->
+          <div class="content-box bg-subtle p-3 mb-3" id="reschedPreviewCard">
+            <div class="d-flex justify-between items-center">
+              <strong id="reschedPrevCourse">Corso: --</strong>
+              <span class="badge" id="reschedPrevPhaseBadge">AULA</span>
+            </div>
+            <div class="text-sm mt-1">
+              <div>📅 <strong>Data programmata:</strong> <span id="reschedPrevDate">--</span> (<span id="reschedPrevTime">--</span>)</div>
+              <div>👨‍🏫 <strong>Docente:</strong> <span id="reschedPrevDocente">--</span></div>
+              <div>📖 <strong>Modulo:</strong> <span id="reschedPrevModulo">--</span></div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label><strong>Seleziona Azione sullo Stato della Lezione:</strong></label>
+            <select id="reschedStatusSelect" class="form-select" required>
+              <option value="rinviata">🔄 Rinvia Lezione ad altra data / orario</option>
+              <option value="annullata">❌ Annulla Lezione (cancellata dal programma)</option>
+              <option value="confermata">✅ Confermata (Regolare)</option>
+              <option value="svolta">☑️ Segna come Già Svolta</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="reschedReason">Motivazione / Causa della variazione:</label>
+            <textarea id="reschedReason" class="form-textarea" rows="2" required placeholder="Es. Indisponibilità improvvisa docente per impegni accademici, richiesta spostamento aula, sciopero..."></textarea>
+          </div>
+
+          <!-- Rescheduled New Details (Shown when status == 'rinviata') -->
+          <div id="reschedDetailsContainer" class="phase-fields-panel">
+            <div class="font-bold text-sm mb-2 text-primary">🗓️ Nuova Programmazione Proposta:</div>
+
+            <div class="form-row">
+              <div class="form-group col-4">
+                <label for="reschedNewDate">Nuova Data:</label>
+                <input type="date" id="reschedNewDate" class="form-input">
+              </div>
+
+              <div class="form-group col-4">
+                <label for="reschedNewStart">Nuovo Orario Inizio:</label>
+                <input type="time" id="reschedNewStart" class="form-input" value="08:30">
+              </div>
+
+              <div class="form-group col-4">
+                <label for="reschedNewEnd">Nuovo Orario Fine:</label>
+                <input type="time" id="reschedNewEnd" class="form-input" value="13:30">
+              </div>
+            </div>
+
+            <!-- Reschedule Live Conflict Alert -->
+            <div id="reschedConflictAlert" class="alert-box alert-danger mt-2" style="display: none;">
+              <div class="d-flex items-center gap-2">
+                <span>⚠️</span>
+                <div>
+                  <strong>Conflitto nella nuova data:</strong>
+                  <p id="reschedConflictText" class="text-sm mt-1 mb-0"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" id="btnCancelRescheduleModal">Annulla</button>
+            <button type="submit" class="btn btn-primary" id="btnConfirmReschedule">Applica Variazione</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+
+
+    <!-- ============================================================ -->
+    <!-- MODAL: CARICA DOCUMENTO / FILE DIPENDENTI & CORSI -->
+    <!-- ============================================================ -->
+    <div class="modal-backdrop" id="modalDocumentUploadBackdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>📤 Carica Documento / File</h3>
+          <button class="modal-close-btn" id="btnCloseUploadDocModal">&times;</button>
+        </div>
+
+        <form id="formDocumentUpload" enctype="multipart/form-data">
+          <!-- File Dropzone -->
+          <div class="form-group">
+            <label><strong>Seleziona File da Caricare:</strong></label>
+            <div class="file-dropzone" id="dropzoneDocFile">
+              <input type="file" id="inputDocFile" class="hidden-file-input" required accept=".xlsx,.xls,.pdf,.doc,.docx,.csv,.png,.jpg,.jpeg,.zip">
+              <div class="dropzone-text" id="dropzoneDocText">
+                📁 Trascina qui il file (Excel, PDF, Word, Immagini) o <span class="text-primary underline">sfoglia</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="docUploadTitle">Titolo / Descrizione Documento:</label>
+            <input type="text" id="docUploadTitle" class="form-input" required placeholder="Es. Foglio Presenze Firmato Ottobre Messina">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="docUploadEmployee">Dipendente / Collaboratore Associato:</label>
+              <select id="docUploadEmployee" class="form-select">
+                <option value="">-- Generale / Nessun Dipendente --</option>
+              </select>
+            </div>
+
+            <div class="form-group col-6">
+              <label for="docUploadCourse">Corso di Riferimento:</label>
+              <select id="docUploadCourse" class="form-select">
+                <option value="">-- Nessun Corso Specifico --</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="docUploadCategory">Categoria Documento:</label>
+              <select id="docUploadCategory" class="form-select">
+                <option value="Fogli Presenza & Firme">Fogli Presenza & Firme</option>
+                <option value="Contratti & Nomine">Contratti & Nomine</option>
+                <option value="Prospetti Ore & Buste">Prospetti Ore & Buste</option>
+                <option value="Attestati & Certificati">Attestati & Certificati</option>
+                <option value="Materiale Didattico">Materiale Didattico</option>
+                <option value="Generale">Generale / Altro</option>
+              </select>
+            </div>
+
+            <div class="form-group col-6">
+              <label for="docUploadNotes">Note Aggiuntive (opzionale):</label>
+              <input type="text" id="docUploadNotes" class="form-input" placeholder="Es. Copia firmata in originale">
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" id="btnCancelUploadDocModal">Annulla</button>
+            <button type="submit" class="btn btn-primary" id="btnSubmitUploadDoc">📤 Avvia Caricamento</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: IMPORTA CALENDARIO CORSO DA FILE EXCEL / GOOGLE SHEETS -->
+    <!-- ============================================================ -->
+    <div class="modal-backdrop" id="modalImportCalendarBackdrop">
+      <div class="modal-card modal-card-large">
+        <div class="modal-header">
+          <div>
+            <h3>📥 Importa Calendario Corso da File</h3>
+            <p class="text-muted text-sm">Carica il file Excel (.xlsx/.xls) o Google Fogli (.csv/.xlsx) per creare automaticamente il corso e le lezioni</p>
+          </div>
+          <button class="modal-close-btn" id="btnCloseImportCalModal">&times;</button>
+        </div>
+
+        <div style="padding: 1.25rem;">
+          <!-- Download blank template banner -->
+          <div class="template-download-banner mb-3 d-flex items-center justify-between">
+            <div class="d-flex items-center gap-2">
+              <span style="font-size: 1.6rem;">📊</span>
+              <div>
+                <strong>Modello di Corso Vuoto (.xlsx)</strong>
+                <div class="text-muted text-sm">Scarica il modello ufficiale preimpostato con formule di controllo per compilarlo.</div>
+              </div>
+            </div>
+            <a href="/api/course-calendars/template" class="btn btn-outline btn-sm" download="Modello_Calendario_Corso.xlsx">
+              📥 Scarica Modello Vuoto
+            </a>
+          </div>
+
+          <!-- Step 1: File dropzone -->
+          <div id="importStepDropzone">
+            <div class="file-dropzone" id="dropzoneCalFile">
+              <input type="file" id="inputCalFile" class="hidden-file-input" accept=".xlsx,.xls,.csv,.tsv">
+              <div class="dropzone-text" id="dropzoneCalText">
+                📁 Trascina qui il file del corso (Excel .xlsx o Google Sheets .csv) oppure <span class="text-primary underline">sfoglia dal computer</span>
+              </div>
+            </div>
+            <div id="calImportLoading" style="display: none;" class="text-center py-4">
+              <div class="spinner-inline mb-2">⏳</div>
+              <strong>Analisi del file e verifica conflitti docenti in corso...</strong>
+            </div>
+          </div>
+
+          <!-- Step 2: Live Preview Section -->
+          <div id="calImportPreviewSection" style="display: none;" class="mt-3">
+            <div class="alert alert-info mb-3">
+              <strong>✅ File analizzato con successo!</strong> Verifica l'anteprima, assegna il Tutor e clicca su "Conferma e Crea Corso".
+            </div>
+
+            <!-- Potential conflicts warning -->
+            <div id="importConflictAlert" class="conflict-alert-banner mb-3" style="display: none;">
+              <div class="conflict-banner-header">
+                <span class="conflict-warning-icon">⚠️</span>
+                <div>
+                  <strong class="conflict-title">Attenzione: Rilevate Possibili Sovrapposizioni Docente!</strong>
+                  <p class="conflict-subtitle text-sm" id="importConflictText"></p>
+                </div>
+              </div>
+              <div class="conflict-list mt-2" id="importConflictItems"></div>
+            </div>
+
+            <div class="form-row mb-3">
+              <div class="form-group col-12">
+                <label for="importTargetCourseSelect"><strong>🎯 Destinazione Calendario:</strong></label>
+                <select id="importTargetCourseSelect" class="form-select">
+                  <option value="new">➕ Crea come Nuovo Corso</option>
+                  <!-- Populated dynamically with existing courses -->
+                </select>
+                <div id="importCourseMatchHint" class="alert alert-info mt-2" style="display:none; padding: 0.6rem 0.85rem; font-size: 0.85rem;"></div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-7">
+                <label for="importCourseName"><strong>Nome del Corso:</strong></label>
+                <input type="text" id="importCourseName" class="form-input" required placeholder="Es. ASSISTENTE FAMILIARE">
+              </div>
+              <div class="form-group col-5">
+                <label for="importCourseCode"><strong>Codice / Edizione:</strong></label>
+                <input type="text" id="importCourseCode" class="form-input" placeholder="Es. CS 108 ED 280">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-6">
+                <label for="importCourseTutor"><strong>Tutor d'Aula Assegnato (Facoltativo):</strong></label>
+                <select id="importCourseTutor" class="form-select">
+                  <!-- Populated via JS -->
+                </select>
+              </div>
+              <div class="form-group col-3">
+                <label for="importCourseColor">Colore Badge:</label>
+                <input type="color" id="importCourseColor" class="form-input form-input-color" value="#2563EB">
+              </div>
+              <div class="form-group col-3">
+                <label for="importCourseHours">Ore Totali:</label>
+                <input type="number" id="importCourseHours" class="form-input" step="0.5" readonly style="background:var(--bg-tertiary);">
+              </div>
+            </div>
+
+            <!-- Badges & Stats breakdown -->
+            <div class="preview-metrics-grid mb-3">
+              <div class="metric-card">
+                <span class="metric-card-lbl">Ore Fase Aula</span>
+                <strong class="metric-card-val text-primary" id="previewAulaHours">0h</strong>
+                <span class="text-muted text-xs" id="previewAulaSessionsCount">0 lezioni</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-card-lbl">Ore Fase Stage</span>
+                <strong class="metric-card-val text-purple" id="previewStageHours">0h</strong>
+                <span class="text-muted text-xs" id="previewStageSessionsCount">0 giornate</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-card-lbl">Periodo Aula</span>
+                <strong class="metric-card-val text-sm" id="previewAulaDates">-</strong>
+              </div>
+              <div class="metric-card">
+                <span class="metric-card-lbl">Periodo Stage</span>
+                <strong class="metric-card-val text-sm" id="previewStageDates">-</strong>
+              </div>
+            </div>
+
+            <!-- Docenti & Modules Summary Table -->
+            <div class="content-box mb-3" style="max-height: 180px; overflow-y: auto;">
+              <div class="d-flex justify-between items-center mb-2">
+                <strong class="text-sm">👨‍🏫 Unità Formative & Docenti Assegnati (<span id="previewDocentiCount">0</span>)</strong>
+              </div>
+              <table class="data-table data-table-sm">
+                <thead>
+                  <tr>
+                    <th>Modulo / Unità Formativa</th>
+                    <th class="text-right">Ore</th>
+                    <th>Docente</th>
+                    <th>Codice Fiscale</th>
+                    <th class="text-center">Fascia</th>
+                  </tr>
+                </thead>
+                <tbody id="previewTbodyModules"></tbody>
+              </table>
+            </div>
+
+            <!-- Preview first sessions -->
+            <div class="content-box" style="max-height: 180px; overflow-y: auto;">
+              <div class="d-flex justify-between items-center mb-2">
+                <strong class="text-sm">📅 Dettaglio Calendario (<span id="previewTotalSessionsCount">0</span> sessioni complessive)</strong>
+              </div>
+              <table class="data-table data-table-sm">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Giorno</th>
+                    <th>Orario</th>
+                    <th>Fase</th>
+                    <th>Modulo</th>
+                    <th class="text-right">Ore</th>
+                    <th>Docente</th>
+                  </tr>
+                </thead>
+                <tbody id="previewTbodySessions"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="btnCancelImportCalModal">Annulla</button>
+          <button type="button" class="btn btn-secondary" id="btnResetImportFile" style="display: none;">🔄 Scegli altro file</button>
+          <button type="button" class="btn btn-primary" id="btnConfirmImportCal" disabled>
+            🚀 Conferma & Crea Corso nel Sito
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: RISOLUZIONE DISCREPANZA AUTOMATICA DEL SISTEMA         -->
+    <!-- ============================================================ -->
+    <div class="modal-backdrop" id="modalResolveDiscrepancyBackdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <h3 class="d-flex items-center gap-2">
+              <span>🛠️</span>
+              <span>Assistente Diagnostica: Risolvi Discrepanza Corsi</span>
+            </h3>
+            <p class="text-muted text-sm">Il sistema ha rilevato un conflitto tra schede con lo stesso codice. Scegli come desideri che il gestionale le unifichi.</p>
+          </div>
+          <button class="modal-close-btn" id="btnCloseResolveDiscrepancyModal">&times;</button>
+        </div>
+
+        <div style="padding: 1.25rem;">
+          <div class="alert alert-warning mb-3" id="discrepancyModalDescription">
+            <!-- Populated via JS -->
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label mb-2"><strong>Come vuoi che il gestionale nomini il corso definitivo unificato?</strong></label>
+            <div class="d-flex flex-col gap-2" id="discrepancyRadioGroup">
+              <!-- Populated dynamically via JS -->
+            </div>
+          </div>
+
+          <div class="form-group mt-3" id="discrepancyCustomNameBox" style="display: none;">
+            <label for="inputDiscrepancyCustomName">Nome personalizzato:</label>
+            <input type="text" id="inputDiscrepancyCustomName" class="form-input" placeholder="Es. Avviso 20 Unsic - Assistente Familiare">
+          </div>
+
+          <div class="alert alert-info text-sm mt-3">
+            ℹ️ <strong>Cosa farà il sistema in automatico:</strong><br>
+            • Trasferirà l'intero calendario (65 lezioni), orari e tutti i docenti al corso definitivo.<br>
+            • Eliminerà la scheda duplicata vuota senza perdita di ore o dati.<br>
+            • Allineerà automaticamente il riepilogo a 360 ore.
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="btnCancelResolveDiscrepancy">Annulla</button>
+          <button type="button" class="btn btn-primary" id="btnExecuteResolveDiscrepancy">
+            ⚡ Applica Correzione Automatica
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: CARICAMENTO & REVISIONE PRESENZE TUTOR DEL CORSO       -->
+    <!-- ============================================================ -->
+    <div class="modal-backdrop" id="modalAttendanceImportBackdrop" style="display: none;">
+      <div class="modal-card modal-lg" style="max-width: 950px; width: 95vw;">
+        <div class="modal-header">
+          <div>
+            <h3 class="d-flex items-center gap-2">
+              <span>📋</span>
+              <span>Carica & Revisiona Presenze Tutor per il Corso</span>
+            </h3>
+            <p class="text-muted text-sm">
+              Corso di destinazione: <strong class="text-primary" id="attendanceModalCourseName">--</strong>
+            </p>
+          </div>
+          <button class="modal-close-btn" id="btnCloseAttendanceModal">&times;</button>
+        </div>
+
+        <div style="padding: 1.25rem;">
+          <!-- FASE 1: UPLOAD FILE -->
+          <div id="attendancePhaseUpload">
+            <div class="alert alert-info mb-3">
+              💡 <strong>Come funziona la revisione automatica:</strong><br>
+              1. Carica il foglio presenze del tutor (formati supportati: <code>.xlsx</code>, <code>.xls</code>, <code>.csv</code>, Timesheet ministeriali come Allegato 14).<br>
+              2. Il sistema confronterà ogni giornata con le lezioni ufficiali del corso.<br>
+              3. Se ci sono giornate non corrispondenti, potrai <strong>correggerle, associarle con 1 clic al calendario o escluderle</strong> prima del caricamento definitivo.
+            </div>
+
+            <div class="file-dropzone mb-3" id="attendanceDropzone" style="border: 2px dashed var(--accent-blue); padding: 2.5rem 1.5rem; text-align: center; border-radius: 8px; background: var(--bg-subtle); cursor: pointer;">
+              <div style="font-size: 2.8rem; margin-bottom: 0.5rem;">📂</div>
+              <strong style="font-size: 1.05rem;">Trascina qui il file presenze oppure clicca per selezionarlo</strong>
+              <div class="text-sm text-muted mt-1">Excel (.xlsx, .xls) o CSV</div>
+              <input type="file" id="inputAttendanceFile" accept=".xlsx,.xls,.csv,.txt" style="display: none;">
+            </div>
+
+            <div id="attendanceFileSelectedNotice" class="alert alert-success d-flex justify-between items-center" style="display: none;">
+              <div>
+                📄 File selezionato: <strong id="attendanceSelectedFileName">--</strong> (<span id="attendanceSelectedFileSize">--</span>)
+              </div>
+              <button type="button" class="btn btn-outline btn-sm" id="btnResetAttendanceFile">Cambia</button>
+            </div>
+
+            <div class="d-flex justify-between items-center mt-3 pt-2" style="border-top: 1px dashed var(--border-color); flex-wrap: wrap; gap: 0.5rem;">
+              <div class="text-xs text-muted">
+                💡 Vuoi un foglio Excel già pronto con tutte le date e gli orari del corso da verificare e ricaricare?
+              </div>
+              <button type="button" class="btn btn-outline btn-sm font-bold" id="btnDownloadAttendanceTemplate">
+                📥 Scarica Foglio Excel Pre-Compilato
+              </button>
+            </div>
+          </div>
+
+          <!-- FASE 2: REVISIONE & CORREZIONE DATE DIF FORMI -->
+          <div id="attendancePhaseReview" style="display: none;">
+            <!-- Summary Stats Banner -->
+            <div class="attendance-stats-banner mb-3 p-3 bg-subtle" style="border-radius: 8px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+              <div class="d-flex items-center gap-3">
+                <span style="font-size: 1.8rem;">📊</span>
+                <div>
+                  <div class="font-bold" style="font-size: 1.05rem;">
+                    Estratte <span id="statAttendanceTotalEntries">0</span> giornate (<span id="statAttendanceTotalHours">0</span>h totali)
+                  </div>
+                  <div class="text-xs text-muted">File: <span id="statAttendanceFileName">--</span></div>
+                </div>
+              </div>
+              <div class="d-flex gap-2">
+                <span class="badge badge-success" id="statBadgeMatches">✅ 0 Corrispondenti</span>
+                <span class="badge badge-warning" id="statBadgeWarnings" style="display: none;">⚠️ 0 Ore Difformi</span>
+                <span class="badge badge-danger" id="statBadgeMismatches" style="display: none;">❌ 0 Non nel corso</span>
+              </div>
+            </div>
+
+            <!-- Quick Action Toolbar -->
+            <div class="d-flex justify-between items-center mb-2 flex-wrap gap-2">
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline btn-sm" id="btnAttendanceSelectAll">
+                  ☑️ Seleziona Tutte
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" id="btnAttendanceDeselectMismatches">
+                  🧹 Deseleziona Non Corrispondenti
+                </button>
+              </div>
+              <div class="text-xs text-muted">
+                ℹ️ Puoi modificare la data, le ore o usare il menu a tendina per collegare una riga errata al corso.
+              </div>
+            </div>
+
+            <!-- Interactive Table Wrapper -->
+            <div class="attendance-table-wrapper" style="max-height: 380px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px;">
+              <table class="data-table data-table-sm" id="tableAttendanceReview" style="width: 100%; border-collapse: collapse;">
+                <thead style="position: sticky; top: 0; background: var(--bg-card); z-index: 2;">
+                  <tr>
+                    <th style="width: 40px; text-align: center;">Includi</th>
+                    <th style="width: 130px;">Data</th>
+                    <th style="width: 80px; text-align: right;">Ore</th>
+                    <th style="min-width: 160px;">Modulo / Attività</th>
+                    <th style="min-width: 250px;">Stato Corrispondenza & Correzione</th>
+                    <th style="width: 45px; text-align: center;">Elimina</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyAttendanceReview">
+                  <!-- Populated dynamically via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer d-flex justify-between">
+          <button type="button" class="btn btn-outline" id="btnCancelAttendanceModal">Annulla</button>
+          
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-secondary" id="btnBackToAttendanceUpload" style="display: none;">
+              ⬅️ Scegli Altro File
+            </button>
+            <button type="button" class="btn btn-primary" id="btnProcessAttendanceFile" disabled>
+              🔍 Analizza & Confronta col Corso
+            </button>
+            <button type="button" class="btn btn-success font-bold" id="btnConfirmAttendanceSave" style="display: none;">
+              🚀 Conferma & Registra Presenze (<span id="btnConfirmAttendanceCount">0</span> lezioni)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: CONFIGURAZIONE ORARIO DA CONTRATTO LAVORATIVO D'UFFICIO -->
+    <!-- ============================================================ -->
+    <div class="modal-backdrop" id="modalContractScheduleBackdrop">
+      <div class="modal-card" style="max-width: 580px;">
+        <div class="modal-header header-blue">
+          <h3>🏛️ Orario da Contratto Lavorativo d'Ufficio</h3>
+          <button class="modal-close-btn" id="btnCloseContractScheduleModal">&times;</button>
+        </div>
+
+        <form id="formContractSchedule">
+          <input type="hidden" id="contractScheduleEmployeeId" value="">
+
+          <p class="text-sm text-muted mb-3">
+            Imposta le tue giornate contrattuali e l'orario standard d'entrata e uscita in sede/ufficio.
+            Questo orario costituisce la base per il calcolo delle ore ordinarie e degli scostamenti nella Banca Ore.
+          </p>
+
+          <!-- 1. Giorni Lavorativi Settimanali -->
+          <div class="form-group mb-3">
+            <label class="font-bold d-block mb-2">📅 Giornate Lavorative Contrattuali:</label>
+            <div class="d-flex gap-2 flex-wrap" id="contractDaysContainer">
+              <label class="d-flex items-center gap-1 p-2" style="background: var(--bg-subtle); border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                <input type="checkbox" name="contractDayOfWeek" value="lun" checked style="width: 16px; height: 16px;"> Lun
+              </label>
+              <label class="d-flex items-center gap-1 p-2" style="background: var(--bg-subtle); border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                <input type="checkbox" name="contractDayOfWeek" value="mar" checked style="width: 16px; height: 16px;"> Mar
+              </label>
+              <label class="d-flex items-center gap-1 p-2" style="background: var(--bg-subtle); border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                <input type="checkbox" name="contractDayOfWeek" value="mer" checked style="width: 16px; height: 16px;"> Mer
+              </label>
+              <label class="d-flex items-center gap-1 p-2" style="background: var(--bg-subtle); border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                <input type="checkbox" name="contractDayOfWeek" value="gio" checked style="width: 16px; height: 16px;"> Gio
+              </label>
+              <label class="d-flex items-center gap-1 p-2" style="background: var(--bg-subtle); border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                <input type="checkbox" name="contractDayOfWeek" value="ven" checked style="width: 16px; height: 16px;"> Ven
+              </label>
+              <label class="d-flex items-center gap-1 p-2" style="background: var(--bg-subtle); border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                <input type="checkbox" name="contractDayOfWeek" value="sab" style="width: 16px; height: 16px;"> Sab
+              </label>
+            </div>
+          </div>
+
+          <!-- 2. Orario Ufficio / Sede Standard -->
+          <div class="form-row mb-3">
+            <div class="col-6">
+              <label for="contractOfficeStart" class="font-bold">⏰ Orario Entrata Sede:</label>
+              <input type="time" id="contractOfficeStart" class="form-input font-bold" value="09:00" required>
+            </div>
+            <div class="col-6">
+              <label for="contractOfficeEnd" class="font-bold">🚪 Orario Termine / Uscita:</label>
+              <input type="time" id="contractOfficeEnd" class="form-input font-bold" value="13:00" required>
+            </div>
+          </div>
+
+          <!-- 3. Pausa Pranzo Opzionale -->
+          <div class="p-3 mb-3" style="background: var(--bg-card); border-radius: 6px; border: 1px solid var(--border-color);">
+            <div class="d-flex justify-between items-center mb-1">
+              <span class="font-bold text-sm" style="color: #92400e;">🥪 Pausa Pranzo Contrattuale (opzionale):</span>
+              <span class="text-xs text-muted">Lascia vuoto se continuato</span>
+            </div>
+            <div class="form-row">
+              <div class="col-6">
+                <label for="contractLunchStart" class="text-xs text-muted">Inizio pausa:</label>
+                <input type="time" id="contractLunchStart" class="form-input" value="" placeholder="--:--">
+              </div>
+              <div class="col-6">
+                <label for="contractLunchEnd" class="text-xs text-muted">Fine pausa:</label>
+                <input type="time" id="contractLunchEnd" class="form-input" value="" placeholder="--:--">
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Dynamic Live Summary -->
+          <div class="alert alert-info py-2 px-3 mb-3 d-flex items-center justify-between" id="contractScheduleSummaryNotice">
+            <span>⏱️ <strong>4.0 ore contrattuali al giorno</strong> (20.0 h/settimana su 5 giorni)</span>
+          </div>
+
+          <div class="p-3 mb-3" style="background: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe; font-size: 0.84rem; color: #1e3a8a;">
+            💡 <strong>Regola di Integrazione Corsi:</strong><br>
+            Per qualsiasi corso a cui sei assegnato con pulsante <em>"🔗 Integra con ore contrattuali"</em> attivo, le ore svolte su quel corso durante questo intervallo non generano sovrapposizioni e <strong>non vengono duplicate</strong> (es. 09:00–13:00 sede + 09:00–13:00 corso = <strong>4 ore lavorate effettive</strong>, non 8!).
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" id="btnCancelContractScheduleModal">Annulla</button>
+            <button type="submit" class="btn btn-primary font-bold" id="btnSaveContractSchedule">💾 Salva Orario Contratto</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: ABBINA CORSO AL TUTOR -->
+    <div class="modal-backdrop" id="modalAssignCourseBackdrop">
+      <div class="modal-card modal-lg" style="background: #ffffff !important; max-width: 650px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.45); border: 1px solid var(--border-color);">
+        <div class="modal-header" style="background: var(--navy); color: #ffffff; padding: 1.1rem 1.4rem;">
+          <h3 class="modal-title font-bold" style="color: #ffffff; margin: 0; font-size: 1.15rem;">🔗 Abbina Corso al Tuo Profilo Tutor</h3>
+          <button class="modal-close" id="btnCloseAssignCourseModal" style="color: #ffffff; opacity: 0.9; font-size: 1.5rem;">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="text-sm text-muted mb-3">
+            Seleziona un corso disponibile tra quelli attivi nel gestionale per abbinarlo al tuo profilo. Una volta abbinato, potrai consultarne il calendario lezioni, i moduli didattici e registrarne le presenze d'aula.
+          </p>
+          <div id="availableCoursesList" style="max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" id="btnCancelAssignCourseModal">Chiudi</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: AGGIUNGI / MODIFICA CONTRATTO LAVORATIVO -->
+    <div class="modal-backdrop" id="modalContractBackdrop">
+      <div class="modal-card modal-lg" style="background: #ffffff !important; max-width: 680px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.45); border: 1px solid var(--border-color);">
+        <div class="modal-header" style="background: var(--navy); color: #ffffff; padding: 1.1rem 1.4rem;">
+          <h3 class="modal-title font-bold" id="modalContractTitle" style="color: #ffffff; margin: 0; font-size: 1.15rem;">📜 Contratto Lavorativo</h3>
+          <button class="modal-close" id="btnCloseContractModal" style="color: #ffffff; opacity: 0.9; font-size: 1.5rem;">&times;</button>
+        </div>
+        <form id="formContract">
+          <input type="hidden" id="contractId" value="">
+          <div class="modal-body" style="padding: 1.5rem; max-height: 75vh; overflow-y: auto; background: #ffffff;">
+            
+            <div class="form-row mb-3">
+              <div class="form-group flex-2">
+                <label for="contractTitle" class="font-bold text-xs">Titolo / Oggetto del Contratto <span class="text-red">*</span></label>
+                <input type="text" id="contractTitle" class="form-input font-bold" placeholder="Es. Contratto a Tempo Indeterminato Ufficio" required>
+              </div>
+              <div class="form-group flex-1">
+                <label for="contractStatus" class="font-bold text-xs">Stato Contratto</label>
+                <select id="contractStatus" class="form-select font-bold">
+                  <option value="Attivo">🟢 Attivo</option>
+                  <option value="In rinnovo">🟡 In Rinnovo</option>
+                  <option value="Rinnovato">🔵 Rinnovato</option>
+                  <option value="Concluso">⚪ Concluso / Terminato</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row mb-3">
+              <div class="form-group flex-1">
+                <label for="contractType" class="font-bold text-xs">Tipologia Contrattuale <span class="text-red">*</span></label>
+                <select id="contractType" class="form-select font-bold" required>
+                  <option value="Indeterminato">A Tempo Indeterminato</option>
+                  <option value="CO.CO.CO">CO.CO.CO (Collaborazione Coordinata e Continuativa)</option>
+                  <option value="Determinato">A Tempo Determinato</option>
+                  <option value="Ritenuta d'acconto">Ritenuta d'Acconto (Prestazione Occasionale)</option>
+                  <option value="Partita IVA">Partita IVA / Libero Professionista</option>
+                  <option value="Stage / Tirocinio">Stage / Tirocinio Formativo</option>
+                  <option value="Collaborazione">Contratto di Collaborazione</option>
+                  <option value="Altro">Altra Tipologia</option>
+                </select>
+              </div>
+              <div class="form-group flex-1">
+                <label for="contractRegime" class="font-bold text-xs">Regime / Specifiche Fisc. o CCNL</label>
+                <input type="text" id="contractRegime" class="form-input" placeholder="Es. Ritenuta d'acconto (20%), Forfettario, ecc.">
+              </div>
+            </div>
+
+            <div class="form-row mb-3">
+              <div class="form-group flex-1">
+                <label for="contractStartDate" class="font-bold text-xs">Data Inizio Contratto</label>
+                <input type="date" id="contractStartDate" class="form-input">
+              </div>
+              <div class="form-group flex-1">
+                <label for="contractEndDate" class="font-bold text-xs">Data Fine / Scadenza</label>
+                <input type="date" id="contractEndDate" class="form-input">
+                <div class="mt-1">
+                  <label class="text-xs font-bold" style="cursor: pointer;">
+                    <input type="checkbox" id="contractNoEndDate"> A tempo indeterminato (senza scadenza)
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 1.25rem 0;">
+
+            <div class="p-3 mb-3" style="background: var(--bg-subtle); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <div class="d-flex items-center justify-between mb-2 flex-wrap gap-2">
+                <div>
+                  <h4 class="font-bold text-sm mb-0" style="color: var(--navy); margin: 0;">⏰ Orario di Lavoro da Contratto</h4>
+                  <p class="text-xs text-muted mb-0">Configura l'orario settimanale giorno per giorno oppure imposta come flessibile/opzionale a progetto.</p>
+                </div>
+              </div>
+
+              <!-- Checkbox: Contratto con orari fissi vs Flessibile (CO.CO.CO) -->
+              <div class="p-2 mb-3" style="background: #ffffff; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <label class="checkbox-label font-bold" style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0;">
+                  <input type="checkbox" id="contractHasFixedSchedule" checked style="width: 18px; height: 18px;">
+                  <span>Contratto con orario settimanale fisso (es. Tempo Indeterminato, Determinato con ore prestabilite)</span>
+                </label>
+                <div class="text-xs text-muted mt-1" id="contractFixedScheduleHelp" style="margin-left: 26px;">
+                  💡 Se deselezioni questa casella (es. per contratti <strong>CO.CO.CO, Partita IVA o collaborazioni a progetto</strong>), l'inserimento delle ore è <strong>totalmente opzionale</strong>: non ci saranno orari d'ufficio obbligatori né debito orario fisso.
+                </div>
+              </div>
+
+              <!-- Container for Day-by-Day Schedule -->
+              <div id="contractScheduleDaysContainer">
+                <div class="d-flex justify-between items-center mb-2 flex-wrap gap-2">
+                  <span class="text-xs font-bold text-muted">Imposta entrata e uscita per ciascun giorno lavorativo (Lunedì &ndash; Sabato):</span>
+                  <button type="button" class="btn btn-outline btn-xs font-bold" id="btnApplyPresetStandardHours" title="Imposta rapidamente 09:00 - 13:00 su Lunedì-Venerdì">
+                    ⚡ Standard (09:00 - 13:00)
+                  </button>
+                </div>
+
+                <div class="table-responsive" style="margin-top: 0.25rem;">
+                  <table class="table-contract-days" style="width: 100%; border-collapse: collapse; font-size: 0.83rem; background: #ffffff; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border-color);">
+                    <thead>
+                      <tr style="background: var(--bg-subtle); border-bottom: 2px solid var(--border-color); color: var(--navy); text-align: left;">
+                        <th style="padding: 7px 10px; width: 110px;">Giorno</th>
+                        <th style="padding: 7px 8px; width: 105px;">⏰ Entrata</th>
+                        <th style="padding: 7px 8px; width: 105px;">🚪 Uscita</th>
+                        <th style="padding: 7px 8px; min-width: 155px;">🥪 Pausa Pranzo (Opzionale)</th>
+                        <th style="padding: 7px 10px; text-align: right; width: 85px;">Ore / gg</th>
+                      </tr>
+                    </thead>
+                    <tbody id="contractScheduleDaysTbody">
+                      <!-- Populated dynamically via JS -->
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Dynamic Live Hours Calculation Badge -->
+                <div class="d-flex justify-between items-center p-2 mt-2 flex-wrap gap-2" style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+                  <div>
+                    <strong style="color: var(--primary);">⏱️ Monte Ore Contrattuale Calcolato:</strong>
+                    <div class="text-xs font-bold text-muted" id="contractLiveScheduleBreakdown">Lun-Gio 4.0h &bull; Ven 2.0h</div>
+                  </div>
+                  <div class="text-right">
+                    <span class="badge badge-info font-bold" style="font-size: 13px;" id="contractLiveWeeklyTotalText">18.0 h / settimana</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Message when schedule is flexible/optional -->
+              <div id="contractFlexibleNotice" class="p-3 text-center" style="display: none; background: #FEF3C7; border: 1px dashed #F59E0B; border-radius: var(--radius-sm); color: #92400E;">
+                <strong>🤝 Contratto Flessibile / A Progetto (CO.CO.CO / Senza Orario Fisso)</strong>
+                <p class="text-xs mt-1 mb-0">Nessun orario fisso obbligatorio da contratto. L'inserimento delle ore è opzionale e le presenze vengono registrate a consuntivo per le attività formative effettivamente svolte.</p>
+              </div>
+            </div>
+
+            <div class="form-group mb-3">
+              <label for="contractRenewalNotes" class="font-bold text-xs">Note su Rinnovo / Proroga / Cambio Contratto</label>
+              <textarea id="contractRenewalNotes" class="form-textarea" rows="2" placeholder="Es. Rinnovo previsto a fine anno, eventuale passaggio a tempo pieno o proroga collaborazione..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="contractNotes" class="font-bold text-xs">Note Aggiuntive</label>
+              <textarea id="contractNotes" class="form-textarea" rows="2" placeholder="Dettagli ulteriori, mansioni specifiche o riferimenti ente formativo..."></textarea>
+            </div>
+
+          </div>
+          <div class="modal-footer" style="padding: 1rem 1.4rem; background: var(--bg-subtle); border-top: 1px solid var(--border-color);">
+            <button type="button" class="btn btn-outline" id="btnCancelContractModal">Annulla</button>
+            <button type="submit" class="btn btn-primary font-bold" id="btnSaveContract">💾 Salva Contratto</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: REGISTRAZIONE RAPIDA PRESENZA GIORNALIERA LEZIONE     -->
+    <!-- ============================================================ -->
+    <div class="modal-backdrop" id="modalDailyPresenceBackdrop" style="display: none;">
+      <div class="modal-card" style="max-width: 520px; width: 95vw;">
+        <div class="modal-header">
+          <h3 class="d-flex items-center gap-2">
+            <span id="dailyPresIcon">📋</span>
+            <span id="dailyPresTitle">Registra Presenza Giornaliera</span>
+          </h3>
+          <button class="modal-close-btn" id="btnCloseDailyPresenceModal">&times;</button>
+        </div>
+
+        <div style="padding: 1.25rem;">
+          <!-- Hidden tracking fields -->
+          <input type="hidden" id="dailyPresCourseId" value="">
+          <input type="hidden" id="dailyPresSessionId" value="">
+          <input type="hidden" id="dailyPresEntryId" value="">
+          <input type="hidden" id="dailyPresDate" value="">
+
+          <!-- Lesson metadata summary box -->
+          <div class="p-3 mb-3 bg-subtle" style="border-radius: 8px; border: 1px solid var(--border-color);">
+            <div class="d-flex justify-between items-center mb-1">
+              <span class="badge badge-info" id="dailyPresCourseBadge">Corso</span>
+              <span class="text-xs font-bold" id="dailyPresPhaseBadge">Aula</span>
+            </div>
+            <h4 class="font-bold my-1" id="dailyPresDateDisplay" style="color: var(--navy); font-size: 1.1rem;">--</h4>
+            <div class="text-sm mt-1">
+              📖 <strong>Modulo:</strong> <span id="dailyPresModulo">--</span>
+            </div>
+            <div class="text-sm mt-1">
+              👨‍🏫 <strong>Docente:</strong> <span id="dailyPresDocente">--</span>
+            </div>
+            <div class="text-xs text-muted mt-2 pt-2" style="border-top: 1px dashed var(--border-color);">
+              🕒 Orario programmato da calendario: <strong id="dailyPresSchedTime">--</strong> (<strong id="dailyPresSchedHours">0</strong> ore)
+            </div>
+          </div>
+
+          <!-- Existing presence status notice (if already registered) -->
+          <div id="dailyPresExistingAlert" class="alert alert-success py-2 px-3 mb-3 text-xs font-bold" style="display: none;">
+            ✔️ Presenza già registrata nel tuo registro ore per questa lezione.
+          </div>
+
+          <!-- Time Inputs -->
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label font-bold text-xs" for="dailyPresActualStart">🕒 Ora Inizio Presenza:</label>
+              <input type="time" class="form-input" id="dailyPresActualStart" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label font-bold text-xs" for="dailyPresActualEnd">🚪 Ora Termine Presenza:</label>
+              <input type="time" class="form-input" id="dailyPresActualEnd" required>
+            </div>
+          </div>
+
+          <!-- Calculated Hours & Integration notice -->
+          <div class="d-flex justify-between items-center p-2 mb-3" style="background: rgba(37, 99, 235, 0.08); border-radius: 6px; border: 1px solid rgba(37, 99, 235, 0.2);">
+            <div>
+              <span class="text-xs text-muted">Ore Presenza Lavorate:</span>
+              <div class="font-bold" style="font-size: 1.15rem; color: var(--navy);" id="dailyPresCalculatedHours">0.0 h</div>
+            </div>
+            <div id="dailyPresIntegrationBadge">
+              <span class="badge badge-success text-xs">🔗 Integrato Ufficio</span>
+            </div>
+          </div>
+
+          <!-- Optional Notes -->
+          <div class="mb-3">
+            <label class="form-label text-xs font-semibold" for="dailyPresNote">Note presenze (opzionali):</label>
+            <input type="text" class="form-input text-sm" id="dailyPresNote" placeholder="Es. Lezione regolare d'aula, aula n. 2">
+          </div>
+
+          <!-- Footer Buttons -->
+          <div class="d-flex justify-between items-center pt-2 flex-wrap gap-2" style="border-top: 1px solid var(--border-color);">
+            <button type="button" class="btn btn-outline" id="btnCancelDailyPresence">Annulla</button>
+            <div class="d-flex gap-2 flex-wrap">
+              <button type="button" class="btn btn-outline-danger font-bold" id="btnDeleteDailyPresence" style="display: none;">
+                🗑️ Rimuovi
+              </button>
+              <button type="button" class="btn btn-success font-bold" id="btnSaveDailyPresence">
+                ✅ Conferma Presenza
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MOBILE FLOATING ACTION BUTTON (FAB) PER REGISTRAZIONE RAPIDA ORE -->
+    <button class="mobile-fab" id="btnMobileFabEntry" title="Registra Giornata di Lavoro / Lezione" type="button">
+      <span>➕</span> Registra Ore
+    </button>
+
+    <!-- TOAST NOTIFICATIONS -->
+    <div id="toastContainer" class="toast-container"></div>
+  </div>
+
+  <script type="module" src="/static/js/app.js?v=7.0"></script>
+</body>
+</html>
