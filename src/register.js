@@ -19,10 +19,10 @@ export async function registerAccount(db, data, setupKey) {
   try {
     const firstUser = db.prepare('SELECT COUNT(*) AS n FROM users').get().n === 0;
     const role = firstUser ? 'admin' : 'tutor';
-    if (firstUser && (!process.env.ANDREW_SETUP_KEY ||
-      process.env.ANDREW_SETUP_KEY.length < 20 ||
-      typeof setupKey !== 'string' || setupKey !== process.env.ANDREW_SETUP_KEY)) {
-      const error = new Error('Per il primo amministratore è richiesta ANDREW_SETUP_KEY (minimo 20 caratteri)');
+    const secret=process.env.UNISIC_SETUP_KEY || process.env.ANDREW_SETUP_KEY;
+    if (firstUser && (!secret || secret.length < 20 ||
+      typeof setupKey !== 'string' || setupKey !== secret)) {
+      const error = new Error('Per il primo amministratore è richiesta UNISIC_SETUP_KEY (minimo 20 caratteri)');
       error.status = 403; throw error;
     }
     const result = db.prepare('INSERT INTO users (name,email,password_hash,role) VALUES (?,?,?,?)')
