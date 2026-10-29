@@ -1,68 +1,92 @@
-# Andrew · Workspace
+# Unisic · Workspace
 
-Gestionale web per corsi, tutor, calendario, contratti, documenti e banca ore.
+**Unisic** è un gestionale modulare per corsi, calendario, tutor, presenze, contratti, documenti e banca ore. Stack: Node.js 22.16+, SQLite, HTML/CSS/JavaScript.
 
-**Stack:** Node.js 22.16+, SQLite, JavaScript ES Modules, HTML, CSS. Nessuna dipendenza runtime esterna.
+## Come avviarlo su Mac
 
-## Installazione e avvio
+Da una cartella di progetto che contiene già dati reali, salva una copia completa di `data/` prima di aggiornare il codice.
 
-1. Installa Node.js 22.16 o superiore.
-2. Configura la variabile di ambiente ANDREW_SETUP_KEY con una chiave casuale di almeno 20 caratteri. Non pubblicarla su Git.
-3. Da terminale esegui: npm run check; npm test; npm start.
-4. Apri http://127.0.0.1:58235 e registra il primo amministratore utilizzando la chiave configurata.
+```bash
+node -v
+npm test
+./avvia_unisic.command
+```
 
-Per generare la chiave su Mac/Linux:
-    export ANDREW_SETUP_KEY="$(node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('hex'))")"
+Il file `avvia_unisic.command` genera (solo al primo avvio) una chiave in `data/setup.key`, la mostra nel Terminale e apre il sito su **http://127.0.0.1:58235**. Se necessario: `chmod +x avvia_unisic.command`.
 
-Dati locali: ./data/andrew.sqlite. Puoi modificare il percorso impostando ANDREW_DATA_DIR.
-Per l'utilizzo remoto è obbligatorio predisporre HTTPS e controlli di accesso adeguati.
+La chiave iniziale serve soltanto alla creazione del primo amministratore. Dopo il login, nella sidebar trovi **Impostazioni**.
 
-## Funzionalità incluse
+## Dove si trovano i dati?
 
-- Login/registrazione con password scrypt, token HttpOnly e ruoli admin/tutor.
-- Dashboard con statistiche, calendario, corsi, tutor e report.
-- CRUD per corsi, sessioni, contratti, movimenti di banca ore e documenti.
-- Controllo sovrapposizione di docenti e tutor, calendari ufficiali per corso, fasi aula/stage, moduli e test finali.
-- Import dei calendari XLSX/CSV con anteprima, controllo collisioni e verifica duplicati; modello scaricabile dalla pagina Calendario.
-- Presenze e turni anche notturni con orario previsto/effettivo, pause, calcolo delta e riconciliazione automatica con il saldo ore.
-- Registro crediti/debiti con saldo iniziale e report settimanali/mensili.
-- Export Excel (.xlsx) multi-foglio e CSV; import Excel e CSV con anteprima e blocco duplicati.
-- Snapshot SQLite riservato agli amministratori.
-- Test automatici e CI GitHub Actions.
-- Frontend responsive con pagine separate in public/ e JS modulari.
+Unisic salva il database e i documenti **sul dispositivo dove gira il server**, non su GitHub:
 
-## Migrazione dei dati
+| Contenuto | Percorso locale |
+|---|---|
+| Nuova installazione | `data/unisic.sqlite` |
+| Installazione precedente Andrew | `data/andrew.sqlite`, utilizzato automaticamente se già esiste |
+| Documenti caricati | `data/documents/` |
+| Chiave del primo avvio | `data/setup.key` |
+| Eventuali file transitori SQLite | `data/*.sqlite-wal`, `data/*.sqlite-shm` |
+| Backup manuali | Download dall'interfaccia amministratore, nella cartella di download scelta dal browser |
 
-Conserva una copia del vecchio database e dei documenti al di fuori di Git.
+Il percorso effettivo è visibile nella schermata **Impostazioni → Database** dall'amministratore. È possibile cambiare directory impostando la variabile `UNISIC_DATA_DIR`; per compatibilità rimane supportata anche `ANDREW_DATA_DIR`.
 
-Anteprima non distruttiva:
-    node src/migrate.js --source "/percorso/banca_ore.db" --dry-run
+**Importante:** non cancellare `data/`. Non rinominare o spostare il database a server acceso. Esegui sempre una copia dell'intera cartella a server fermo prima di migrare.
 
-Importazione in un database nuovo e vuoto:
-    node src/migrate.js --source "/percorso/banca_ore.db" --documents "/percorso/documents" --apply
+## Preferenze personali
 
-Il tool non modifica il database originale. Gli allegati vengono copiati solo quando è indicata la cartella fisica.
-I record non convertibili sono conservati in legacy_unmapped_records.
-L'importazione di profili senza password hash valida non riutilizza PIN predefiniti deboli.
+Nella pagina **Impostazioni** ogni utente può scegliere:
 
-## Architettura
+- Tema **chiaro**, **scuro**, oppure **automatico** secondo il dispositivo.
+- Modalità compatta.
+- Eliminazione del proprio account, previa conferma testuale e password.
 
-- Database/: schema SQLite
-- Routes/: endpoint HTTP e middleware
-- src/: business logic, accesso dati, import ed Excel
-- public/: HTML, CSS, JavaScript
-- tests/: test di integrazione e regressione
-- docs/: architettura, sicurezza e migrazione
+Le preferenze sono registrate in SQLite e caricate dopo l'accesso, con una copia locale del tema per l'applicazione immediata.
 
-## Avvertenze e limiti
+## Configurazione amministrativa
 
-La nuova implementazione non rappresenta ancora un porting 1:1 di tutti i processi del gestionale storico.
-Alcuni formati Excel non tabellari, report contabili specifici, gestioni presenze avanzate e notifiche SMTP
-richiedono ulteriore migrazione e validazione con i dati reali. Non sostituire il sistema in produzione
-senza completare il collaudo e verificare tutti i record non migrabili.
+L'amministratore può:
 
-La repository originale è pubblica e contiene nella cronologia un database e log potenzialmente sensibili.
-Sono esclusi dal nuovo branch, ma non dalla vecchia cronologia né da main. Valutare la messa in privato
-e l'eventuale bonifica della cronologia, con un piano di backup.
+- Modificare nome/sottotitolo del workspace e tema predefinito.
+- Consentire o disabilitare la registrazione pubblica e l'upload dei tutor.
+- Creare account, modificarne nome/email/ruolo/stato, saldo iniziale e ore giornaliere.
+- Azzerare password (temporanea visibile una sola volta), chiudere le sessioni attive ed eliminare account e dati personali.
+- Visualizzare percorsi dati, contatori e storico delle operazioni amministrative.
+- Salvare un backup SQLite dal pannello amministratore.
+- Eliminare **tutti** gli utenti e tutti i dati applicativi mediante l'operazione separata **Elimina tutto**, con password e doppia conferma.
+- Gestire corsi, sessioni, documenti, contratti e altre informazioni dalle rispettive schermate.
 
-Consultare docs/MIGRATION.md, docs/SECURITY.md e docs/ARCHITECTURE.md per i dettagli.
+Per evitare di rendere impossibile l'accesso, non è consentito eliminare l'ultimo amministratore attraverso la semplice cancellazione dell'account. Il ripristino totale torna invece alla configurazione iniziale.
+
+**Le eliminazioni sono irreversibili e non cancellano i backup già scaricati né la cronologia Git.** Proteggi sempre i backup e i file di dati.
+
+## Avvio manuale
+
+```bash
+export UNISIC_SETUP_KEY="$(node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('hex'))")"
+npm run check
+npm test
+npm start
+```
+
+Il server resta per impostazione predefinita su `127.0.0.1`. Per accesso remoto servono HTTPS, backup cifrati e controlli di sicurezza aggiuntivi.
+
+## Migrazione del database originale Python/Bottle
+
+```bash
+node src/migrate.js --source "/percorso/banca_ore.db" --dry-run
+node src/migrate.js --source "/percorso/banca_ore.db" --documents "/percorso/documents" --apply
+```
+
+La migrazione richiede una destinazione vuota; il database sorgente viene letto senza modifiche. Consulta `docs/MIGRATION.md`.
+
+## Codice e test
+
+- `Database/`: schema SQLite e upgrade idempotenti
+- `Routes/`: API, autorizzazione e gestione admin
+- `src/`: database, domini, import/export, settings
+- `public/`: HTML, CSS e JavaScript per pagina
+- `tests/`: integrazione HTTP, migrazione, gestione utenti, permessi e cancellazioni
+- `.github/workflows/`: GitHub Actions CI
+
+**Stato:** i test automatici verificano i principali percorsi, ma prima di usare Unisic con dati reali occorre comunque un collaudo operativo completo. La repository storica pubblica contiene database/log potenzialmente riservati nelle versioni precedenti: i file non vengono rimossi dalla cronologia solo aggiornando il branch.

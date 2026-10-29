@@ -1,8 +1,8 @@
 services:
-  andrew:
+  unisic:
     build: .
     environment:
-      ANDREW_SETUP_KEY: ${ANDREW_SETUP_KEY:?Configurare_ANDREW_SETUP_KEY}
+      UNISIC_SETUP_KEY: ${UNISIC_SETUP_KEY:?Configurare_UNISIC_SETUP_KEY}
     ports:
       - "127.0.0.1:58235:58235"
     volumes:

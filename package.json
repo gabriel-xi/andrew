@@ -1,9 +1,9 @@
 {
-  "name": "andrew",
+  "name": "unisic",
   "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "Gestionale corsi e banca ore, Node.js + SQLite, senza dipendenze runtime",
+  "description": "Unisic: gestionale corsi, tutor, presenze e banca ore",
   "engines": {
     "node": ">=22.16.0"
   },

@@ -1,13 +1,20 @@
 import { DatabaseSync } from 'node:sqlite';
-import { mkdirSync, readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 
 let connection;
+export function getStoragePaths() {
+  const directory=resolve(process.env.UNISIC_DATA_DIR || process.env.ANDREW_DATA_DIR || './data');
+  const modern=join(directory,'unisic.sqlite'),legacy=join(directory,'andrew.sqlite');
+  // Existing Andrew installs retain their database and all user records unchanged.
+  const database=existsSync(modern)?modern:existsSync(legacy)?legacy:modern;
+  return {directory,database,documents:join(directory,'documents'),legacy_database:database===legacy};
+}
 export function getDb() {
   if (!connection) {
-    const directory = resolve(process.env.ANDREW_DATA_DIR || './data');
+    const {directory,database}=getStoragePaths();
     mkdirSync(directory, { recursive: true, mode: 0o700 });
-    connection = new DatabaseSync(join(directory, 'andrew.sqlite'));
+    connection = new DatabaseSync(database);
     connection.exec('PRAGMA busy_timeout = 10000');
     connection.exec(readFileSync(new URL('../Database/database.sql', import.meta.url), 'utf8'));
 

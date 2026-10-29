@@ -1,5 +1,5 @@
 FROM node:22-alpine
-ENV NODE_ENV=production HOST=0.0.0.0 PORT=58235 ANDREW_DATA_DIR=/app/data
+ENV NODE_ENV=production HOST=0.0.0.0 PORT=58235 UNISIC_DATA_DIR=/app/data
 WORKDIR /app
 RUN mkdir -p /app/data && chown node:node /app/data
 COPY --chown=node:node package.json app.js ./

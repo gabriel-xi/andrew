@@ -163,3 +163,14 @@ CREATE TABLE IF NOT EXISTS legacy_work_history (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_legacy_history_user_date ON legacy_work_history(user_id,work_date);
+
+-- Unisic configuration and user display preferences: additive migration, no data erased.
+CREATE TABLE IF NOT EXISTS app_settings (
+  setting_key TEXT PRIMARY KEY,
+  setting_value TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS user_preferences (
+  user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  theme TEXT NOT NULL DEFAULT 'system' CHECK(theme IN ('system','light','dark')),
+  compact_mode INTEGER NOT NULL DEFAULT 0
+);
