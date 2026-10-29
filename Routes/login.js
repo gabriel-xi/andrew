@@ -1,4 +1,4 @@
-import { verifyPassword,createSession,sessionCookie,clearSessionCookie,hashToken } from '../src/login.js';
+import { hashPassword,verifyPassword,createSession,sessionCookie,clearSessionCookie,hashToken } from '../src/login.js';
 import { readCookie } from './middleware/auth.js';
 import { publicUser } from '../src/db.js';
 import { HttpError } from '../src/app.js';
@@ -26,6 +26,26 @@ export default function register(router) {
     res.setHeader('Set-Cookie', sessionCookie(token,req));
     send(200,{status:'ok',user:publicUser(user)});
   },'public');
+  router.add('POST','/api/auth/change-password',async ({db,user,req,res,body,send}) => {
+    const data=await body();
+    const current=data.current_password,newPassword=data.new_password;
+    if(typeof current!=='string' || typeof newPassword!=='string' || newPassword.length<12 || newPassword.length>1024) {
+      throw new HttpError(400,'Inserisci password attuale e nuova password (minimo 12 caratteri)');
+    }
+    if(current===newPassword)throw new HttpError(400,'La nuova password deve essere diversa');
+    const record=db.prepare('SELECT password_hash FROM users WHERE id=? AND is_active=1').get(user.id);
+    if(!record || !await verifyPassword(current,record.password_hash)) throw new HttpError(401,'Password attuale non corretta');
+    const hash=await hashPassword(newPassword);
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      db.prepare('UPDATE users SET password_hash=? WHERE id=?').run(hash,user.id);
+      db.prepare('DELETE FROM auth_sessions WHERE user_id=?').run(user.id);
+      const token=createSession(db,user.id);
+      db.exec('COMMIT');
+      res.setHeader('Set-Cookie',sessionCookie(token,req));
+      send(200,{status:'ok',message:'Password aggiornata e altre sessioni revocate'});
+    } catch(error){db.exec('ROLLBACK');throw error;}
+  });
   router.add('POST','/api/auth/logout',({req,res,db,send}) => {
     const token=readCookie(req,'andrew_session');
     if (token) db.prepare('DELETE FROM auth_sessions WHERE token_hash=?').run(hashToken(token));

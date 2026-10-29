@@ -78,3 +78,8 @@ confirmImport.addEventListener('click',async()=>{
   fileInput.value='';previewFile=null;await load();showMessage('Importazione completata','success');
  }catch(error){showMessage(error.message);}
 });
+
+bindForm('passwordForm',async raw=>{
+ await api('/api/auth/change-password','POST',raw);
+ showMessage('Password aggiornata. Le altre sessioni sono state chiuse.','success');
+},{success:'Password aggiornata'});
