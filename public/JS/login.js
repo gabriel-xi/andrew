@@ -1,1 +1,2 @@
-import{api,form}from './shared.js';form(async d=>{await api('/api/auth/login','POST',d);location.href='/homepage.html'})
+import { api,bindForm } from './shared.js';
+bindForm('form',async data=>{await api('/api/auth/login','POST',data);location.replace('/homepage.html');});

@@ -17,7 +17,7 @@ export default function register(router){
     send(200,{status:'ok',documents:docs});
   });
   router.add('POST','/api/documents/upload',async ({db,user,req,send})=>{
-    const name=basename(String(req.headers['x-file-name']||'').replaceAll('\\','/')).slice(0,180);
+    const name=basename(decodeURIComponent(String(req.headers['x-file-name']||'')).replaceAll('\\','/')).slice(0,180);
     if (!name || name==='.' || name==='..') throw new HttpError(400,'Nome file non valido');
     const type=String(req.headers['content-type']||'application/octet-stream');
     if (!['application/pdf','application/octet-stream','image/png','image/jpeg','text/plain','text/csv',
@@ -36,8 +36,8 @@ export default function register(router){
     }
     if(length===0)throw new HttpError(400,'File vuoto');
     const key=randomUUID(),file=join(storage(),key);
-    const title=String(req.headers['x-title']||name).slice(0,180);
-    const category=String(req.headers['x-category']||'Generale').slice(0,80);
+    const title=decodeURIComponent(String(req.headers['x-title']||encodeURIComponent(name))).slice(0,180);
+    const category=decodeURIComponent(String(req.headers['x-category']||'Generale')).slice(0,80);
     writeFileSync(file,Buffer.concat(chunks),{flag:'wx',mode:0o600});
     try{
       const result=db.prepare('INSERT INTO documents (owner_id,course_id,title,filename,storage_key,mime_type,size_bytes,category) VALUES (?,?,?,?,?,?,?,?)')
