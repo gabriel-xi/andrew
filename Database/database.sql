@@ -146,3 +146,20 @@ CREATE TABLE IF NOT EXISTS calendar_import_batches (
  created_at TEXT NOT NULL DEFAULT (datetime('now')),
  UNIQUE(course_id,sha256)
 );
+
+-- Keep a lossless record of legacy working days. Ordinary hours are NOT bank credits.
+CREATE TABLE IF NOT EXISTS legacy_work_history (
+  legacy_id INTEGER PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  course_id INTEGER REFERENCES courses(id) ON DELETE SET NULL,
+  work_date TEXT,
+  entry_type TEXT NOT NULL DEFAULT '',
+  hours REAL NOT NULL DEFAULT 0,
+  scheduled_hours REAL NOT NULL DEFAULT 0,
+  actual_hours REAL NOT NULL DEFAULT 0,
+  bank_kind TEXT,
+  note TEXT NOT NULL DEFAULT '',
+  original_json TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_legacy_history_user_date ON legacy_work_history(user_id,work_date);

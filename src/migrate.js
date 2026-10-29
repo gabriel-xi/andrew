@@ -47,7 +47,7 @@ function addAudit(db, entity, id, action) {
   db.prepare('INSERT INTO audit_events (actor_id,action,entity,entity_id) VALUES (NULL,?,?,?)').run(action,entity,id);
 }
 export function importLegacy(source, target, options={}) {
-  for(const name of ['users','courses','calendar_events','work_entries','employee_contracts','documents']){
+  for(const name of ['users','courses','calendar_events','work_entries','employee_contracts','documents','legacy_work_history']){
     if (target.prepare('SELECT COUNT(*) AS n FROM '+name).get().n) {
       throw Error('Il database di destinazione non è vuoto ('+name+'). Interrotto senza modifiche.');
     }
@@ -59,7 +59,8 @@ export function importLegacy(source, target, options={}) {
   const createdFiles=[];
   const documentsRoot=options.documentsDir && existsSync(options.documentsDir) ? realpathSync(options.documentsDir) : null;
   const targetDocuments=resolve(process.env.ANDREW_DATA_DIR||'./data','documents');
-  const counts = { users:0,courses:0,calendars:0,events:0,entries:0,contracts:0,skipped_events:0,skipped_entries:0,locked_users:0,document_metadata:0, documents_not_copied:0, unmapped:0 };
+  const counts = { users:0,courses:0,calendars:0,events:0,entries:0,ordinary_entries:0,historical_entries:0,contracts:0,skipped_events:0,skipped_entries:0,locked_users:0,document_metadata:0,documents_not_copied:0,unmapped:0,duplicate_emails:0 };
+  const seenEmails=new Set();
   const unmapped = target.prepare('INSERT INTO legacy_unmapped_records (legacy_table,legacy_id,reason,record) VALUES (?,?,?,?)');
   target.exec('BEGIN IMMEDIATE');
   try {
@@ -69,7 +70,13 @@ export function importLegacy(source, target, options={}) {
       // Never transfer old default weak 1234 PINs as authentication.
       const validHash = /^[a-f0-9]{64}$/i.test(row.password_hash || '') && /^[a-f0-9]{32}$/i.test(row.salt || '');
       const hash = validHash ? 'pbkdf2:'+row.salt+':'+row.password_hash : 'locked:legacy-password-reset-required';
-      const email = String(row.email || '').includes('@') ? row.email.trim().toLowerCase() : 'legacy-user-'+row.id+'@invalid.local';
+      let email = String(row.email || '').includes('@') ? row.email.trim().toLowerCase() : 'legacy-user-'+row.id+'@invalid.local';
+      if(seenEmails.has(email)) {
+        unmapped.run('employees',Number(row.id),'Duplicate email: assigned placeholder address',JSON.stringify(row));
+        email='legacy-user-'+row.id+'@invalid.local';
+        counts.duplicate_emails++;counts.unmapped++;
+      }
+      seenEmails.add(email);
       const active = row.deleted_at || row.is_active === 0 ? 0 : 1;
       const result = insertUser.run(mappingLabel(row.name)||'Utente legacy '+row.id,email,hash,mapRole(row.role),
         Number(row.initial_bank_hours)||0,Number(row.standard_day_hours)||7,active,Number(row.id));
@@ -109,21 +116,32 @@ export function importLegacy(source, target, options={}) {
         counts.events++;
       }
     }
+    const insertHistory=target.prepare(
+      'INSERT INTO legacy_work_history (legacy_id,user_id,course_id,work_date,entry_type,hours,scheduled_hours,actual_hours,bank_kind,note,original_json) VALUES (?,?,?,?,?,?,?,?,?,?,?)');
     const insertWork=target.prepare('INSERT INTO work_entries (user_id,course_id,work_date,hours,kind,note,legacy_id,scheduled_start,scheduled_end,actual_start,actual_end,scheduled_hours,actual_hours,activity_type,exit_date,source_payload) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-    for (const row of source.prepare('SELECT * FROM work_entries ORDER BY id').all()) {
-      const uid=integerMap(users,row.employee_id), date=iso(row.date);
-      const kind=row.type==='maturata'?'credit':row.type==='utilizzata'?'debit':null;
-      const hours=Math.abs(Number(row.hours));
-      if(!uid || !date || !kind || !Number.isFinite(hours) || hours <= 0) {
-        unmapped.run('work_entries',Number(row.id),'Entry not representable as bank credit/debit',JSON.stringify(row));
-        counts.skipped_entries++;counts.unmapped++;continue;
+    for(const row of source.prepare('SELECT * FROM work_entries ORDER BY id').all()) {
+      const uid=integerMap(users,row.employee_id),courseId=integerMap(courses,row.course_id);
+      const date=iso(row.date),type=String(row.type||'').toLowerCase().trim();
+      const kind=type==='maturata'?'credit':type==='utilizzata'?'debit':null;
+      const rawHours=Number(row.hours),hours=Math.abs(rawHours);
+      const note=val(row.note || row.causale);
+      // Every original row is represented, including ordinary working days and invalid records.
+      insertHistory.run(Number(row.id),uid,courseId,date,type,Number.isFinite(rawHours)?rawHours:0,
+        Number(row.scheduled_hours)||0,Number(row.actual_hours)||0,kind,note,JSON.stringify(row));
+      counts.historical_entries++;
+      if(type==='ordinaria'||type==='ordinario'||type==='presenza_corso') {
+        counts.ordinary_entries++;
+        continue; // Do not corrupt the bank with ordinary attendance hours.
       }
-      // Split long daily totals to maintain constraints without losing any accrued hours.
+      if(!uid || !date || !kind || !Number.isFinite(hours) || hours<=0) {
+        unmapped.run('work_entries',Number(row.id),'Bank record missing user/date/type/hours',JSON.stringify(row));
+        counts.skipped_entries++;counts.unmapped++;
+        continue;
+      }
       let remaining=hours;
       while(remaining>0) {
         const chunk=Math.min(24,remaining);
-        insertWork.run(uid,integerMap(courses,row.course_id),date,chunk,kind,
-          val(row.note || row.causale),Number(row.id),
+        insertWork.run(uid,courseId,date,chunk,kind,note,Number(row.id),
           val(row.scheduled_start),val(row.scheduled_end),val(row.actual_start),val(row.actual_end),
           Number(row.scheduled_hours)||0,Number(row.actual_hours)||0,val(row.activity_type),iso(row.exit_date),
           JSON.stringify(row));

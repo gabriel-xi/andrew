@@ -4,7 +4,7 @@ $('work_date').value=new Date().toISOString().slice(0,10);
 const courseSelect=$('course_id');
 for(const c of (await api('/api/courses')).courses){const opt=node('option','',c.title);opt.value=c.id;courseSelect.append(opt);}
 async function load(){
- const [profile,entryResponse,contractResponse]=await Promise.all([api('/api/me'),api('/api/me/entries'),api('/api/contracts')]);
+ const [profile,entryResponse,contractResponse,legacyResponse]=await Promise.all([api('/api/me'),api('/api/me/entries'),api('/api/contracts'),api('/api/me/history')]);
  const bank=profile.bank,entries=entryResponse.entries;
  clear('profileStats').append(stat('Saldo disponibile',hours(bank.balance),'◷','#b6a0ff','Saldo progressivo'),
   stat('Crediti maturati',hours(bank.credit),'↗','#66e0b9','Ore aggiunte'),
@@ -22,6 +22,10 @@ async function load(){
     if(!confirm('Eliminare questo movimento?'))return;
     try{await api('/api/me/entries/'+e.id,'DELETE');await load();showMessage('Movimento eliminato','success');}catch(error){showMessage(error.message);}
   },'btn danger small')
+ ]));
+ $('legacyCount').textContent=legacyResponse.total+' registrazioni';
+ table('legacyHistory',['Data','Attività','Ore registrate','Ore effettive','Corso'],legacyResponse.history.map(e=>[
+  formatDate(e.work_date),e.entry_type, hours(e.hours),hours(e.actual_hours),e.course_title||'—'
  ]));
  table('contracts',['Contratto','Tipo','Periodo','Ore/settimana','Stato','Azioni'],contractResponse.contracts.map(c=>[
   c.title,c.contract_type,(c.start_date?formatDate(c.start_date):'—')+' → '+(c.end_date?formatDate(c.end_date):'—'),

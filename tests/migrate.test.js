@@ -23,14 +23,17 @@ test('migrazione: backup legacy in sola lettura, mapping e saldo conservato', as
   source.prepare("INSERT INTO courses VALUES (?,?,?,?,?,?,?,?,?,?)").run(4,'Corso A','A1','Note','Attivo',40,7,'Docente','#64748b',0);
   source.prepare("INSERT INTO work_entries VALUES (?,?,?,?,?,?,?)").run(3,7,4,'2026-10-20',5,'maturata','Extra');
   source.prepare("INSERT INTO work_entries VALUES (?,?,?,?,?,?,?)").run(4,7,4,'2026-10-21',2,'utilizzata','Permesso');
-  assert.equal(migrationCounts(source).work_entries,2);
+  source.prepare("INSERT INTO work_entries VALUES (?,?,?,?,?,?,?)").run(5,7,4,'2026-10-22',4,'ordinaria','Lavoro ordinario');
+  assert.equal(migrationCounts(source).work_entries,3);
   const db=getDb(),counts=importLegacy(source,db);
   assert.equal(counts.users,1);assert.equal(counts.courses,1);assert.equal(counts.entries,2);
+  assert.equal(counts.historical_entries,3);assert.equal(counts.ordinary_entries,1);
   const u=db.prepare("SELECT * FROM users").get();
   assert.equal(u.initial_bank_hours,124);
   assert.equal(await verifyPassword(pass,u.password_hash),true);
   const c=db.prepare('SELECT * FROM courses').get();assert.equal(c.status,'active');
   assert.equal(db.prepare("SELECT SUM(CASE WHEN kind='credit' THEN hours ELSE -hours END) AS n FROM work_entries").get().n,3);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM legacy_work_history').get().n,3);
   assert.throws(()=>importLegacy(source,db),/non è vuoto/);
  }finally{source.close();rmSync(dir,{recursive:true,force:true});}
 });
