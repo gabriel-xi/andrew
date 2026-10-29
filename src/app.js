@@ -78,7 +78,7 @@ const router = makeRouter();
 for (const register of [
   registerAppRoutes,registerLoginRoutes,registerRegisterRoutes,registerMeRoutes,
   registerCalendarRoutes,registerCourseRoutes,registerTutorRoutes,registerDatabaseRoutes,
-  registerContractRoutes,registerDocumentRoutes,registerReportRoutes,registerImportExportRoutes,registerTimecardRoutes,registerCourseCalendarRoutes,registerCalendarImportRoutes
+  registerContractRoutes,registerDocumentRoutes,registerReportRoutes,registerImportExportRoutes,registerTimecardRoutes,registerCalendarImportRoutes,registerCourseCalendarRoutes
 ]) register(router);
 
 async function serveStatic(req, res, pathname) {
