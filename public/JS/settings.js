@@ -95,7 +95,7 @@ if(isAdmin){
   ]));
   // User data is inserted using textContent, never innerHTML.
   const root=$('usersTable').querySelector('tbody');
-  if(root)for(const [index,row] of root.rows.entries()){
+  if(root)for(const [index,row] of Array.from(root.rows).entries()){
    const display=users[index];
    row.cells[0].replaceChildren(node('strong','',display.name),node('p','muted',display.email));
   }
