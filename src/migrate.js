@@ -5,19 +5,22 @@
  *   node src/migrate.js --source /absolute/path/banca_ore.db --apply
  *
  * Never writes to the source DB. Refuses to merge into a populated target.
- * Documents are NOT copied automatically; see README for file migration.
+ * Documents are copied only when --documents DIR explicitly points to the source files.
  */
 import { DatabaseSync } from 'node:sqlite';
-import { resolve } from 'node:path';
+import { resolve, join, basename, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync, realpathSync, copyFileSync, unlinkSync, constants } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { getDb, isDate } from './db.js';
 
 const sourceArg = process.argv.indexOf('--source');
+const docsArg = process.argv.indexOf('--documents');
+const documentsPath = docsArg >= 0 ? process.argv[docsArg + 1] : null;
 const sourcePath = sourceArg >= 0 ? process.argv[sourceArg + 1] : null;
 const apply = process.argv.includes('--apply');
 const dryRun = process.argv.includes('--dry-run');
-const allowed = new Set(['--source','--apply','--dry-run']);
+const allowed = new Set(['--source','--documents','--apply','--dry-run']);
 export function validTime(time) { return typeof time === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(time); }
 export function mappingLabel(value) {
   return String(value || '').normalize('NFKC').trim();
@@ -43,7 +46,7 @@ function mapEventStatus(status) {
 function addAudit(db, entity, id, action) {
   db.prepare('INSERT INTO audit_events (actor_id,action,entity,entity_id) VALUES (NULL,?,?,?)').run(action,entity,id);
 }
-export function importLegacy(source, target) {
+export function importLegacy(source, target, options={}) {
   for(const name of ['users','courses','calendar_events','work_entries','employee_contracts','documents']){
     if (target.prepare('SELECT COUNT(*) AS n FROM '+name).get().n) {
       throw Error('Il database di destinazione non è vuoto ('+name+'). Interrotto senza modifiche.');
@@ -53,7 +56,11 @@ export function importLegacy(source, target) {
     throw Error('Formato legacy non riconosciuto: tabelle mancanti.');
   }
   const users = new Map(), courses = new Map(), calendars = new Map();
-  const counts = { users:0,courses:0,calendars:0,events:0,entries:0,contracts:0,skipped_events:0,skipped_entries:0,locked_users:0,document_metadata:0, documents_not_copied:0 };
+  const createdFiles=[];
+  const documentsRoot=options.documentsDir && existsSync(options.documentsDir) ? realpathSync(options.documentsDir) : null;
+  const targetDocuments=resolve(process.env.ANDREW_DATA_DIR||'./data','documents');
+  const counts = { users:0,courses:0,calendars:0,events:0,entries:0,contracts:0,skipped_events:0,skipped_entries:0,locked_users:0,document_metadata:0, documents_not_copied:0, unmapped:0 };
+  const unmapped = target.prepare('INSERT INTO legacy_unmapped_records (legacy_table,legacy_id,reason,record) VALUES (?,?,?,?)');
   target.exec('BEGIN IMMEDIATE');
   try {
     const insertUser = target.prepare(
@@ -91,7 +98,10 @@ export function importLegacy(source, target) {
       for(const row of source.prepare('SELECT * FROM course_calendar_sessions ORDER BY id').all()) {
         const cid=integerMap(calendars,row.calendar_id);
         const parent=cid && target.prepare('SELECT course_id FROM course_calendars WHERE id=?').get(cid);
-        if(!parent || !iso(row.date) || !validTime(row.start_time) || !validTime(row.end_time) || row.start_time >= row.end_time) {counts.skipped_events++;continue;}
+        if(!parent || !iso(row.date) || !validTime(row.start_time) || !validTime(row.end_time) || row.start_time >= row.end_time) {
+          unmapped.run('course_calendar_sessions',Number(row.id),'Invalid calendar/date/time',JSON.stringify(row));
+          counts.skipped_events++;counts.unmapped++;continue;
+        }
         insert.run(parent.course_id,cid,row.date,row.start_time,row.end_time,
           val(row.modulo || row.docente,'Lezione'),val(row.docente),integerMap(users,row.tutor_id),
           row.phase === 'stage'?'stage':'aula',mapEventStatus(row.status),val(row.notes),
@@ -104,7 +114,10 @@ export function importLegacy(source, target) {
       const uid=integerMap(users,row.employee_id), date=iso(row.date);
       const kind=row.type==='maturata'?'credit':row.type==='utilizzata'?'debit':null;
       const hours=Math.abs(Number(row.hours));
-      if(!uid || !date || !kind || !Number.isFinite(hours) || hours <= 0) {counts.skipped_entries++;continue;}
+      if(!uid || !date || !kind || !Number.isFinite(hours) || hours <= 0) {
+        unmapped.run('work_entries',Number(row.id),'Entry not representable as bank credit/debit',JSON.stringify(row));
+        counts.skipped_entries++;counts.unmapped++;continue;
+      }
       // Split long daily totals to maintain constraints without losing any accrued hours.
       let remaining=hours;
       while(remaining>0) {
@@ -130,21 +143,45 @@ export function importLegacy(source, target) {
       }
     }
     if(tableExists(source,'documents')) {
-      // Metadata is recorded in the audit report; binary files live outside SQLite
-      // and require a separate validated import with physical documents present.
-      counts.documents_not_copied=source.prepare('SELECT COUNT(*) AS n FROM documents').get().n;
+      const insertDoc=target.prepare('INSERT INTO documents (owner_id,course_id,title,filename,storage_key,mime_type,size_bytes,category,notes) VALUES (?,?,?,?,?,?,?,?,?)');
+      for(const row of source.prepare('SELECT * FROM documents ORDER BY id').all()) {
+        let original=null;
+        if(documentsRoot) {
+          for(const candidate of [basename(val(row.stored_path)),basename(val(row.filename))]) {
+            if(!candidate || candidate==='.' || candidate==='..')continue;
+            try {
+              const path=realpathSync(join(documentsRoot,candidate));
+              if(path.startsWith(documentsRoot+sep)) {original=path;break;}
+            }catch{}
+          }
+        }
+        if(!original) {
+          unmapped.run('documents',Number(row.id),'Physical file missing or --documents not supplied',JSON.stringify(row));
+          counts.documents_not_copied++;counts.unmapped++;continue;
+        }
+        const key=randomUUID(),destination=join(targetDocuments,key);
+        mkdirSync(targetDocuments,{recursive:true,mode:0o700});
+        copyFileSync(original,destination,constants.COPYFILE_EXCL);
+        createdFiles.push(destination);
+        const size=Number(row.file_size)||0;
+        insertDoc.run(integerMap(users,row.employee_id),integerMap(courses,row.course_id),
+          val(row.title,row.filename),basename(val(row.filename)),key,
+          val(row.file_type,'application/octet-stream'),size,val(row.category,'Generale'),val(row.notes));
+        counts.document_metadata++;
+      }
     }
     addAudit(target,'migration',null,'legacy-import-v1');
     target.exec('COMMIT');
     return counts;
   } catch(error) {
     target.exec('ROLLBACK');
+    for(const file of createdFiles)try{unlinkSync(file);}catch{}
     throw error;
   }
 }
 if (process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   if(!sourcePath || apply===dryRun || process.argv.some(x=>x.startsWith('--')&&!allowed.has(x))) {
-    console.error('Uso: node src/migrate.js --source /path/banca_ore.db --dry-run|--apply'); process.exitCode=2;
+    console.error('Uso: node src/migrate.js --source /path/banca_ore.db [--documents /path/documents] --dry-run|--apply'); process.exitCode=2;
   } else if (!existsSync(sourcePath)) {
     console.error('Database sorgente non trovato'); process.exitCode=2;
   } else {
@@ -152,7 +189,7 @@ if (process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)
     try {
       const counts=migrationCounts(original);
       console.log(JSON.stringify({source:resolve(sourcePath),counts,mode:apply?'apply':'dry-run'},null,2));
-      if(apply) console.log(JSON.stringify({imported:importLegacy(original,getDb())},null,2));
+      if(apply) console.log(JSON.stringify({imported:importLegacy(original,getDb(),{documentsDir:documentsPath})},null,2));
     } catch(error) {console.error('Migrazione interrotta:',error.message);process.exitCode=1;}
     finally{original.close();}
   }

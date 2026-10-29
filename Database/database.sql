@@ -111,3 +111,12 @@ CREATE TABLE IF NOT EXISTS import_batches (
  created_at TEXT NOT NULL DEFAULT (datetime('now')),
  UNIQUE(user_id,sha256)
 );
+
+CREATE TABLE IF NOT EXISTS legacy_unmapped_records (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  legacy_table TEXT NOT NULL,
+  legacy_id INTEGER,
+  reason TEXT NOT NULL,
+  record TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);

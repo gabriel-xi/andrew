@@ -1,0 +1,19 @@
+services:
+  andrew:
+    build: .
+    environment:
+      ANDREW_SETUP_KEY: ${ANDREW_SETUP_KEY:?Configurare_ANDREW_SETUP_KEY}
+    ports:
+      - "127.0.0.1:58235:58235"
+    volumes:
+      - andrew_data:/app/data
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+volumes:
+  andrew_data:
