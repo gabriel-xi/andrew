@@ -1,0 +1,1 @@
+import{api,auth,show}from './shared.js';const u=await auth();if(u.role!=='admin')location.replace('/homepage.html');else show({overview:await api('/api/admin/overview'),database:await api('/api/db/status')})

@@ -1,0 +1,1 @@
+import{api,auth,show}from './shared.js';await auth();show(await api('/api/tutors'))

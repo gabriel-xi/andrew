@@ -1,0 +1,1 @@
+import{api,auth,show,form}from './shared.js';const u=await auth();if(u.role!=='admin')document.getElementById('form').hidden=true;const load=async()=>show(await api('/api/courses'));form(async d=>{d.total_hours=Number(d.total_hours);await api('/api/courses','POST',d);await load()});await load()

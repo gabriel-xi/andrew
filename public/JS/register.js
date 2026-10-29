@@ -1,0 +1,1 @@
+import{api,form}from './shared.js';form(async d=>{await api('/api/auth/register','POST',d);location.href='/login.html'})

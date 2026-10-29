@@ -1,0 +1,1 @@
+import{api,auth,show,form}from './shared.js';await auth();const load=async()=>show({profile:await api('/api/me'),entries:await api('/api/me/entries')});form(async d=>{d.hours=Number(d.hours);await api('/api/me/entries','POST',d);await load()});await load()
