@@ -19,7 +19,7 @@ export default function register(router) {
     if (typeof password !== 'string' || identifier.length > 254) throw new HttpError(400,'Credenziali non valide');
     const user = db.prepare('SELECT * FROM users WHERE email=?').get(identifier);
     // Always perform comparable expensive work, even for unknown accounts.
-    const valid = user && await verifyPassword(password,user.password_hash);
+    const valid = user ? await verifyPassword(password,user.password_hash) : false;
     if (!valid) throw new HttpError(401,'Email o password errati');
     attempts.delete(ip);
     const token = createSession(db,user.id);

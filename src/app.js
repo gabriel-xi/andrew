@@ -13,7 +13,7 @@ import registerCourseRoutes from '../Routes/courses.js';
 import registerTutorRoutes from '../Routes/tutors.js';
 import registerDatabaseRoutes from '../Routes/db.js';
 
-const publicDir = fileURLToPath(new URL('../public/', import.meta.url));
+const publicDir = resolve(fileURLToPath(new URL('../public/', import.meta.url)));
 const mime = { '.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8',
   '.js':'text/javascript; charset=utf-8', '.json':'application/json; charset=utf-8',
   '.svg':'image/svg+xml', '.png':'image/png', '.ico':'image/x-icon' };

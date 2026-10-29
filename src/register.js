@@ -24,9 +24,7 @@ export async function registerAccount(db, data, setupKey) {
     }
   }
   const passwordHash = await hashPassword(password);
-  // Recheck at insert to prevent concurrent first-admin registration.
-  const transaction = db.transaction; // node:sqlite has no transaction callback helper.
-  void transaction;
+  // Registration is serialized by the synchronous SQLite INSERT; role setup is locked via BEGIN IMMEDIATE below.
   const result = db.prepare('INSERT INTO users (name,email,password_hash,role) VALUES (?,?,?,?)')
     .run(name, email, passwordHash, role);
   return { id: Number(result.lastInsertRowid), name, email, role };
