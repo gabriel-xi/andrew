@@ -10,6 +10,21 @@ export function getDb() {
     connection = new DatabaseSync(join(directory, 'andrew.sqlite'));
     connection.exec('PRAGMA busy_timeout = 10000');
     connection.exec(readFileSync(new URL('../Database/database.sql', import.meta.url), 'utf8'));
+
+    // Idempotent, additive schema upgrades for existing installations.
+    const upgrades = {
+      users: { initial_bank_hours: 'REAL NOT NULL DEFAULT 0', standard_day_hours: 'REAL NOT NULL DEFAULT 7', is_active: 'INTEGER NOT NULL DEFAULT 1', legacy_id: 'INTEGER' },
+      courses: { legacy_id: 'INTEGER', instructor: "TEXT NOT NULL DEFAULT ''", color: "TEXT NOT NULL DEFAULT '#3e74ed'", integrates_with_contract: 'INTEGER NOT NULL DEFAULT 0' },
+      calendar_events: { calendar_id: 'INTEGER REFERENCES course_calendars(id) ON DELETE SET NULL', module: "TEXT NOT NULL DEFAULT ''", is_module_test: 'INTEGER NOT NULL DEFAULT 0', postponed_to: 'TEXT', reschedule_reason: "TEXT NOT NULL DEFAULT ''", legacy_id: 'INTEGER' },
+      work_entries: { legacy_id: 'INTEGER', scheduled_start: 'TEXT', scheduled_end: 'TEXT', actual_start: 'TEXT', actual_end: 'TEXT', scheduled_hours: 'REAL', actual_hours: 'REAL', activity_type: 'TEXT', exit_date: 'TEXT', source_payload: 'TEXT' }
+    };
+    for (const [table, columns] of Object.entries(upgrades)) {
+      const existing = new Set(connection.prepare('PRAGMA table_info(' + table + ')').all().map(c => c.name));
+      for (const [name, declaration] of Object.entries(columns)) {
+        if (!existing.has(name)) connection.exec('ALTER TABLE ' + table + ' ADD COLUMN ' + name + ' ' + declaration);
+      }
+    }
+
   }
   return connection;
 }
@@ -20,7 +35,7 @@ export function publicUser(user) {
 }
 
 export function userById(db, id) {
-  return db.prepare('SELECT id, name, email, role FROM users WHERE id = ?').get(id);
+  return db.prepare('SELECT id, name, email, role, initial_bank_hours, standard_day_hours FROM users WHERE id = ? AND is_active = 1').get(id);
 }
 
 export function courseById(db, id) {

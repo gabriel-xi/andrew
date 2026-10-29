@@ -14,5 +14,8 @@ export function bankSummary(db, userId) {
     "COALESCE(SUM(CASE WHEN kind='credit' THEN hours ELSE 0 END),0) AS credit, " +
     "COALESCE(SUM(CASE WHEN kind='debit' THEN hours ELSE 0 END),0) AS debit " +
     "FROM work_entries WHERE user_id=?").get(userId);
-  return { ...totals, balance: totals.credit - totals.debit };
+  const user = db.prepare('SELECT initial_bank_hours,standard_day_hours FROM users WHERE id=?').get(userId);
+  const initial = user?.initial_bank_hours || 0;
+  const balance = initial + totals.credit - totals.debit;
+  return { ...totals, initial, balance, days_on_standard: user?.standard_day_hours > 0 ? balance/user.standard_day_hours : null };
 }

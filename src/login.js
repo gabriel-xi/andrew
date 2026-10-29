@@ -1,4 +1,4 @@
-import { randomBytes, scrypt as nodeScrypt, createHash, timingSafeEqual } from 'node:crypto';
+import { randomBytes, scrypt as nodeScrypt, createHash, pbkdf2Sync, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 
 const scrypt = promisify(nodeScrypt);
@@ -12,6 +12,11 @@ export async function hashPassword(password) {
 export async function verifyPassword(password, stored) {
   if (typeof stored !== 'string') return false;
   const [algorithm, salt, hex] = stored.split(':');
+  if (algorithm === 'pbkdf2') {
+    if (!/^[0-9a-f]{32}$/.test(salt || '') || !/^[0-9a-f]{64}$/.test(hex || '')) return false;
+    const computed = pbkdf2Sync(password, salt, 100000, 32, 'sha256');
+    return timingSafeEqual(Buffer.from(hex, 'hex'), computed);
+  }
   if (algorithm !== 'scrypt' || !/^[\da-f]{32}$/.test(salt || '') || !/^[\da-f]{128}$/.test(hex || '')) return false;
   const actual = await scrypt(password, Buffer.from(salt, 'hex'), 64);
   return timingSafeEqual(Buffer.from(hex, 'hex'), actual);
