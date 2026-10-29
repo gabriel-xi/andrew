@@ -102,3 +102,12 @@ CREATE TABLE IF NOT EXISTS audit_events (
  action TEXT NOT NULL, entity TEXT NOT NULL, entity_id INTEGER,
  created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS import_batches (
+ id INTEGER PRIMARY KEY AUTOINCREMENT,
+ user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ sha256 TEXT NOT NULL,
+ records INTEGER NOT NULL,
+ created_at TEXT NOT NULL DEFAULT (datetime('now')),
+ UNIQUE(user_id,sha256)
+);

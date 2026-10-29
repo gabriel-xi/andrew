@@ -15,6 +15,7 @@ import registerDatabaseRoutes from '../Routes/db.js';
 import registerContractRoutes from '../Routes/contracts.js';
 import registerDocumentRoutes from '../Routes/documents.js';
 import registerReportRoutes from '../Routes/reports.js';
+import registerImportExportRoutes from '../Routes/importExport.js';
 
 const publicDir = resolve(fileURLToPath(new URL('../public/', import.meta.url)));
 const mime = { '.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8',
@@ -74,7 +75,7 @@ const router = makeRouter();
 for (const register of [
   registerAppRoutes,registerLoginRoutes,registerRegisterRoutes,registerMeRoutes,
   registerCalendarRoutes,registerCourseRoutes,registerTutorRoutes,registerDatabaseRoutes,
-  registerContractRoutes,registerDocumentRoutes,registerReportRoutes
+  registerContractRoutes,registerDocumentRoutes,registerReportRoutes,registerImportExportRoutes
 ]) register(router);
 
 async function serveStatic(req, res, pathname) {

@@ -42,3 +42,39 @@ bindForm('contractForm',async raw=>{
  closeDialog('contractDialog');await load();
 });
 await load();
+
+let previewFile=null;
+const fileInput=$('importFile'),confirmImport=$('confirmImport'),importInfo=$('importInfo');
+fileInput.addEventListener('change',()=>{previewFile=null;confirmImport.disabled=true;importInfo.textContent='';});
+async function uploadForImport(file,confirm){
+ const type=file.name.toLowerCase().endsWith('.csv')?'text/csv':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+ const response=await fetch('/api/import/excel?confirm='+(confirm?'true':'false'),{
+  method:'POST',credentials:'same-origin',headers:{'Content-Type':type},body:file
+ });
+ const data=await response.json();
+ if(!response.ok)throw Error(data.message||'Importazione non riuscita');
+ return data;
+}
+$('importForm').addEventListener('submit',async event=>{
+ event.preventDefault();const file=fileInput.files[0];if(!file)return;
+ if(file.size>12*1024*1024){showMessage('File troppo grande');return;}
+ confirmImport.disabled=true;previewFile=null;
+ try{
+  const result=await uploadForImport(file,false);
+  importInfo.textContent='Righe valide: '+result.total+' · Righe scartate: '+result.skipped.length+
+   (result.skipped.length?' (righe '+result.skipped.slice(0,20).join(', ')+')':'')+
+   (result.already_imported?' · FILE GIÀ IMPORTATO':'');
+  previewFile=file;confirmImport.disabled=result.already_imported||result.total===0;
+  showMessage('Anteprima pronta. Verifica il numero di record prima di confermare.','success');
+ }catch(error){showMessage(error.message);}
+});
+confirmImport.addEventListener('click',async()=>{
+ if(!previewFile||previewFile!==fileInput.files[0])return;
+ if(!confirm('Confermi l’importazione dei movimenti nel tuo saldo ore?'))return;
+ confirmImport.disabled=true;
+ try{
+  const result=await uploadForImport(previewFile,true);
+  importInfo.textContent='Importati '+result.imported+' movimenti.';
+  fileInput.value='';previewFile=null;await load();showMessage('Importazione completata','success');
+ }catch(error){showMessage(error.message);}
+});
