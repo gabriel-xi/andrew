@@ -22,9 +22,17 @@ export function validateEvent(data) {
   const status = data.status || 'confirmed';
   if (!['aula', 'stage'].includes(phase)) throw new Error('Fase non valida');
   if (!['confirmed', 'completed', 'postponed', 'cancelled'].includes(status)) throw new Error('Stato non valido');
+  const calendarId = data.calendar_id ? Number(data.calendar_id) : null;
+  if(calendarId && (!Number.isSafeInteger(calendarId) || calendarId <= 0)) throw new Error('Calendario non valido');
+  const module=String(data.module||'').trim().slice(0,180);
+  const postponedTo=data.postponed_to||null;
+  if(postponedTo && !isDate(postponedTo))throw new Error('Nuova data di rinvio non valida');
+  const testFlag=[true,1,'true','on','1'].includes(data.is_module_test)?1:0;
   return {
     course_id: courseId, event_date: date, start_time: start, end_time: end, title,
-    instructor, tutor_id: tutorId, phase, status, notes: String(data.notes || '').slice(0, 5000)
+    instructor, tutor_id: tutorId, phase, status, notes: String(data.notes || '').slice(0, 5000),
+    calendar_id:calendarId,module,is_module_test:testFlag,postponed_to:postponedTo,
+    reschedule_reason:String(data.reschedule_reason||'').trim().slice(0,1000)
   };
 }
 export function findConflicts(db, event, excludedId = 0) {

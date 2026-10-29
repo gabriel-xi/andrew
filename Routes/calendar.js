@@ -15,10 +15,14 @@ export default function register(router) {
     let e;
     try { e=validateEvent(await body()); } catch(error) { throw new HttpError(400,error.message); }
     if (!courseById(db,e.course_id)) throw new HttpError(404,'Corso inesistente');
+    if(e.calendar_id){
+      const parent=db.prepare('SELECT course_id FROM course_calendars WHERE id=?').get(e.calendar_id);
+      if(!parent||parent.course_id!==e.course_id)throw new HttpError(400,'Il calendario non appartiene al corso');
+    }
     const conflicts=findConflicts(db,e);
     if (conflicts.length) return send(409,{status:'error',message:'Sovrapposizione docente/tutor',conflicts});
-    const result=db.prepare('INSERT INTO calendar_events (course_id,event_date,start_time,end_time,title,instructor,tutor_id,phase,status,notes) VALUES (?,?,?,?,?,?,?,?,?,?)')
-      .run(e.course_id,e.event_date,e.start_time,e.end_time,e.title,e.instructor,e.tutor_id,e.phase,e.status,e.notes);
+    const result=db.prepare('INSERT INTO calendar_events (course_id,event_date,start_time,end_time,title,instructor,tutor_id,phase,status,notes,calendar_id,module,is_module_test,postponed_to,reschedule_reason) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+      .run(e.course_id,e.event_date,e.start_time,e.end_time,e.title,e.instructor,e.tutor_id,e.phase,e.status,e.notes,e.calendar_id,e.module,e.is_module_test,e.postponed_to,e.reschedule_reason);
     send(201,{status:'ok',id:Number(result.lastInsertRowid)});
   },'admin');
   router.add('PUT','/api/calendar/:id',async ({db,params,body,send}) => {
@@ -27,10 +31,14 @@ export default function register(router) {
     let e;
     try { e=validateEvent(await body()); } catch(error) { throw new HttpError(400,error.message); }
     if (!courseById(db,e.course_id)) throw new HttpError(404,'Corso inesistente');
+    if(e.calendar_id){
+      const parent=db.prepare('SELECT course_id FROM course_calendars WHERE id=?').get(e.calendar_id);
+      if(!parent||parent.course_id!==e.course_id)throw new HttpError(400,'Il calendario non appartiene al corso');
+    }
     const conflicts=findConflicts(db,e,id);
     if (conflicts.length) return send(409,{status:'error',message:'Sovrapposizione docente/tutor',conflicts});
-    db.prepare('UPDATE calendar_events SET course_id=?,event_date=?,start_time=?,end_time=?,title=?,instructor=?,tutor_id=?,phase=?,status=?,notes=? WHERE id=?')
-      .run(e.course_id,e.event_date,e.start_time,e.end_time,e.title,e.instructor,e.tutor_id,e.phase,e.status,e.notes,id);
+    db.prepare('UPDATE calendar_events SET course_id=?,event_date=?,start_time=?,end_time=?,title=?,instructor=?,tutor_id=?,phase=?,status=?,notes=?,calendar_id=?,module=?,is_module_test=?,postponed_to=?,reschedule_reason=? WHERE id=?')
+      .run(e.course_id,e.event_date,e.start_time,e.end_time,e.title,e.instructor,e.tutor_id,e.phase,e.status,e.notes,e.calendar_id,e.module,e.is_module_test,e.postponed_to,e.reschedule_reason,id);
     send(200,{status:'ok'});
   },'admin');
   router.add('DELETE','/api/calendar/:id',({db,params,send}) => {
