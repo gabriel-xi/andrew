@@ -92,6 +92,24 @@ export async function auth(){
   try{
     const {user}=await api('/api/auth/me');
     if(!user)throw new Error('Sessione non valida');
+    // Personal settings live in SQLite; localStorage is only a fast theme cache.
+    try {
+      const settings=await api('/api/settings/me');
+      window.UnisicTheme?.set(settings.preferences.theme);
+      document.documentElement.dataset.compact=settings.preferences.compact_mode?'true':'false';
+      const name=settings.global.site_name||'Unisic';
+      document.querySelectorAll('.brand-name,.crumb-brand').forEach(el=>el.textContent=name);
+    } catch {
+      // Older deployments might not expose settings yet: auth must still work.
+    }
+    document.querySelectorAll('[data-admin-nav="true"]').forEach(el=>{el.hidden=user.role!=='admin';});
+    const quick=$('quickTheme');
+    if(quick)quick.addEventListener('click',async()=>{
+      const next=document.documentElement.dataset.theme==='dark'?'light':'dark';
+      window.UnisicTheme?.set(next);
+      try {await api('/api/settings/me','PUT',{theme:next});}
+      catch(error){showMessage('Il tema è stato applicato solo in questo browser: '+error.message);}
+    });
     const avatar=$('avatar');
     if(avatar)avatar.textContent=(user.name||'A').slice(0,1).toUpperCase();
     const date=$('todayDate');

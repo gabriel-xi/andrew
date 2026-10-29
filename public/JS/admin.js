@@ -20,14 +20,3 @@ function render(){
  ]));
 }
 render();
-
-const migration=await api('/api/admin/migration/reconciliation');
-$('migrationBadge').textContent=migration.mismatches?'Differenze: '+migration.mismatches:'Saldi coerenti';
-table('migrationReconciliation',['Profilo','Atteso','Attuale','Differenza'],migration.users.map(x=>[
- x.name,x.expected.toFixed(2)+' h',x.actual.toFixed(2)+' h',
- x.difference===0?'OK':x.difference.toFixed(2)+' h'
-]));
-const unmapped=clear('migrationUnmapped');
-unmapped.append(node('h3','','Dati storici da verificare'));
-const grid=node('div');unmapped.append(grid);
-table(grid,['Tabella legacy','Record da controllare'],migration.unmapped.map(e=>[e.legacy_table,e.n]));

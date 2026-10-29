@@ -2,8 +2,10 @@ import { mkdirSync,writeFileSync,readFileSync,unlinkSync,existsSync } from 'node
 import { resolve,join,basename } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { HttpError } from '../src/app.js';
+import {getGlobalSettings} from '../src/settings.js';
+import {getStoragePaths} from '../src/db.js';
 
-const storage=()=>{const dir=resolve(process.env.ANDREW_DATA_DIR||'./data','documents');mkdirSync(dir,{recursive:true,mode:0o700});return dir;};
+const storage=()=>{const dir=getStoragePaths().documents;mkdirSync(dir,{recursive:true,mode:0o700});return dir;};
 function own(doc,user,db) {
   if (user.role==='admin' || doc.owner_id===user.id) return true;
   return doc.course_id && Boolean(db.prepare('SELECT 1 FROM courses WHERE id=? AND tutor_id=?').get(doc.course_id,user.id));
@@ -17,6 +19,7 @@ export default function register(router){
     send(200,{status:'ok',documents:docs});
   });
   router.add('POST','/api/documents/upload',async ({db,user,req,send})=>{
+    if(user.role!=='admin' && !getGlobalSettings(db).allow_tutor_uploads) throw new HttpError(403,'Caricamenti riservati agli amministratori');
     const name=basename(decodeURIComponent(String(req.headers['x-file-name']||'')).replaceAll('\\','/')).slice(0,180);
     if (!name || name==='.' || name==='..') throw new HttpError(400,'Nome file non valido');
     const type=String(req.headers['content-type']||'application/octet-stream');

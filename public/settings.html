@@ -1,0 +1,68 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#080e1d"><meta name="description" content="Andrew, il workspace per corsi, tutor e banca ore"><title>Dashboard · Andrew</title><link rel="stylesheet" href="/CSS/style.css"></head><body class="workspace-page"><div class="app-shell"><aside class="sidebar"><a href="/homepage.html" class="brand"><span class="brand-mark">A</span><span>Andrew<small>WORKSPACE</small></span></a><div class="nav-label">WORKSPACE</div><nav class="side-nav"><a href="/homepage.html" class=""><span class="nav-symbol">▦</span>Dashboard</a><a href="/calendar.html" class=""><span class="nav-symbol">▦</span>Calendario</a><a href="/courses.html" class=""><span class="nav-symbol">▤</span>Corsi</a><a href="/tutors.html" class=""><span class="nav-symbol">♙</span>Tutor</a><a href="/me.html" class=""><span class="nav-symbol">◷</span>Banca ore</a><a href="/timecards.html"><span class="nav-symbol">◴</span>Presenze</a></nav><div class="nav-label">ORGANIZZAZIONE</div><nav class="side-nav"><a href="/documents.html" class=""><span class="nav-symbol">▣</span>Documenti</a><a href="/reports.html" class=""><span class="nav-symbol">⌁</span>Report</a><a href="/admin.html" class=""><span class="nav-symbol">⚙</span>Admin</a></nav><div class="sidebar-bottom"><span class="live-dot"></span><div><strong>Sistema attivo</strong><small>Andrew · v2</small></div></div></aside><div class="main-shell"><header class="topbar"><div class="topbar-left"><button class="mobile-menu" id="menuToggle" aria-label="Apri menu">☰</button><div class="crumb">Andrew <span>/</span> Dashboard</div></div><div class="topbar-right"><span class="online-chip"><span class="live-dot"></span> Connesso</span><span class="avatar" id="avatar">A</span><button id="logout" class="text-btn" type="button">Esci</button></div></header><main class="content">
+<div class="page-title"><div><p class="eyebrow">CENTRO DI CONTROLLO</p><h1>Impostazioni Unisic</h1>
+<p>Personalizza il tuo workspace e, se sei amministratore, gestisci tutti i profili e i dati.</p></div>
+<div class="date-pill" id="todayDate"></div></div><div id="message" class="alert" role="status" aria-live="polite"></div>
+<div class="settings-grid">
+<section class="card settings-group"><div class="card-head"><div><p class="eyebrow">PERSONALIZZAZIONE</p><h2>Aspetto e preferenze</h2></div><span class="tag">Il tuo profilo</span></div>
+<form id="personalForm">
+<label>Tema dell'interfaccia<select name="theme" id="themeSelect"><option value="system">Automatico (sistema)</option><option value="light">Chiaro</option><option value="dark">Scuro</option></select></label>
+<div class="setting-choice"><label for="compactMode">Interfaccia compatta</label><input id="compactMode" name="compact_mode" type="checkbox"></div>
+<p class="settings-help">Il tema è salvato nel tuo profilo e rimane impostato anche quando accedi da un altro dispositivo.</p>
+<button class="btn primary" type="submit">Salva preferenze</button>
+</form></section>
+<section class="card settings-group"><div class="card-head"><div><p class="eyebrow">PROFILO PERSONALE</p><h2>Il mio account</h2></div></div>
+<div id="myAccount"></div>
+<div class="settings-actions"><a class="btn ghost" href="/me.html">Banca ore e contratti →</a><a class="btn ghost" href="/api/export/excel">Esporta Excel ↗</a></div>
+<p class="settings-help">Puoi modificare la password dalla pagina Banca ore. Puoi anche richiedere la cancellazione del tuo account qui sotto.</p>
+</section></div>
+
+<section class="card" id="adminGeneral" hidden><div class="card-head"><div><p class="eyebrow">CONTROLLO AMMINISTRATORE</p><h2>Configurazione generale</h2></div><span class="tag green">Solo amministratore</span></div>
+<form id="globalForm"><div class="form-grid">
+<label>Nome del workspace<input name="site_name" maxlength="48" minlength="2" required></label>
+<label>Sottotitolo<input name="subtitle" maxlength="120"></label>
+<label>Tema predefinito nuovi utenti<select name="default_theme"><option value="system">Automatico</option><option value="light">Chiaro</option><option value="dark">Scuro</option></select></label>
+</div>
+<div class="setting-choice"><label for="registrationEnabled">Consenti nuove registrazioni pubbliche</label><input name="registration_enabled" id="registrationEnabled" type="checkbox"></div>
+<div class="setting-choice"><label for="tutorUploads">Consenti ai tutor di caricare documenti</label><input name="allow_tutor_uploads" id="tutorUploads" type="checkbox"></div>
+<button class="btn primary" type="submit">Salva configurazione</button></form>
+</section>
+
+<section class="card" id="adminUsers" hidden><div class="card-head"><div><p class="eyebrow">GESTIONE COMPLETA</p><h2>Utenti e accessi</h2></div><button id="createUserBtn" type="button" class="btn primary">+ Nuovo account</button></div>
+<p>Puoi creare, modificare, disattivare, promuovere, azzerare le sessioni o eliminare qualsiasi account, eccetto l'ultimo amministratore.</p>
+<div id="usersTable" class="settings-table"></div>
+</section>
+
+<section class="card" id="adminData" hidden><div class="card-head"><div><p class="eyebrow">ARCHIVIAZIONE LOCALE</p><h2>Database, file e audit</h2></div><a class="btn primary" href="/api/admin/backup">Scarica backup SQLite ↗</a></div>
+<div id="storageInfo"></div><div id="auditEvents"></div>
+<div class="settings-actions"><a href="/courses.html" class="btn ghost">Gestisci corsi</a><a href="/calendar.html" class="btn ghost">Gestisci calendario</a><a href="/documents.html" class="btn ghost">Gestisci documenti</a><a href="/admin.html" class="btn ghost">Dashboard admin</a></div>
+</section>
+
+<section class="card danger-zone"><div class="card-head"><div><p class="eyebrow">OPERAZIONI IRREVERSIBILI</p><h2>Zona pericolosa</h2></div></div>
+<p>La cancellazione elimina dati e sessioni senza possibilità di annullamento. Scarica prima un backup se desideri conservare le informazioni.</p>
+<div class="settings-actions"><button type="button" id="deleteOwnBtn" class="btn danger">Elimina il mio account</button>
+<button type="button" id="resetWorkspaceBtn" class="btn danger" hidden>Elimina tutti i dati e gli utenti</button></div>
+<p class="settings-help">Il ripristino totale richiede la password dell'amministratore e una doppia conferma. Al termine si torna alla configurazione iniziale.</p>
+</section>
+
+<dialog class="modal" id="userDialog"><form id="userForm"><div class="modal-top"><h2 id="userDialogTitle">Gestisci account</h2><button id="closeUserDialog" class="icon-btn" type="button" aria-label="Chiudi">✕</button></div>
+<div class="form-grid">
+<label>Nome<input name="name" required minlength="2" maxlength="120"></label>
+<label>Email<input name="email" type="email" required></label>
+<label>Ruolo<select name="role"><option value="tutor">Tutor</option><option value="admin">Amministratore</option></select></label>
+<label>Ore giornaliere standard<input name="standard_day_hours" type="number" min=".25" max="24" step=".25" value="7" required></label>
+<label>Saldo iniziale ore<input name="initial_bank_hours" type="number" step=".25" value="0" required></label>
+<label id="newPasswordLabel">Password iniziale<input name="password" type="password" minlength="12" autocomplete="new-password"></label>
+</div><div class="setting-choice"><label for="userActive">Account attivo</label><input id="userActive" type="checkbox" name="is_active" checked></div>
+<div class="modal-actions"><button type="submit" class="btn primary">Salva account</button><button type="button" class="btn ghost" id="cancelUserDialog">Annulla</button></div>
+</form></dialog>
+
+<dialog class="modal" id="dangerDialog"><form id="dangerForm"><div class="modal-top"><h2 id="dangerTitle">Conferma</h2><button type="button" id="closeDangerDialog" class="icon-btn">✕</button></div>
+<p id="dangerDescription"></p>
+<label>Digita <strong id="requiredPhrase"></strong> per confermare<input name="confirmation" autocomplete="off" required></label>
+<label>La tua password<input name="password" type="password" autocomplete="current-password" required></label>
+<div class="modal-actions"><button type="submit" class="btn danger">Conferma eliminazione definitiva</button><button type="button" class="btn ghost" id="cancelDangerDialog">Annulla</button></div>
+</form></dialog>
+<dialog class="modal" id="secretDialog"><div class="modal-top"><h2>Password temporanea</h2><button id="closeSecretDialog" class="icon-btn" type="button">✕</button></div>
+<p>Copia ora questa password e comunicala all'utente in modo sicuro. Non potrai visualizzarla nuovamente.</p>
+<div id="secretDisplay" class="settings-code settings-preview"></div><div class="modal-actions"><button id="copySecret" class="btn primary" type="button">Copia password</button></div></dialog>
+</main></div></div><script type="module" src="/JS/settings.js"></script></body></html>
